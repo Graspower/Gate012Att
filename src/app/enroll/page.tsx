@@ -99,10 +99,12 @@ export default function EnrollPage() {
   };
 
   return (
-    <div className="flex flex-col gap-6 h-full">
-      <h1 className="text-4xl font-bold tracking-tight">User Enrollment</h1>
-      <Card className="flex flex-col flex-1">
-        <CardContent className="pt-6 flex flex-col flex-1">
+    <div className="flex flex-col h-full">
+      <Card className="flex flex-col flex-1 w-full">
+        <CardHeader>
+          <CardTitle className="text-4xl font-bold tracking-tight">User Enrollment</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col flex-1">
           <Tabs defaultValue="students" className="flex flex-col flex-1">
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="students">Students</TabsTrigger>
