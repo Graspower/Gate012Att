@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -86,6 +87,79 @@ export function EnrollmentForm<T extends z.ZodType<any, any>>({
     }
   };
 
+  const renderFormControl = (config: typeof fieldsConfig[0], field: any) => {
+    if (config.type === 'text') {
+      return <Input placeholder={config.placeholder} {...field} value={field.value || ''} />;
+    }
+    if (config.type === 'select' && config.options) {
+      return (
+        <Select onValueChange={field.onChange} defaultValue={field.value}>
+          <SelectTrigger>
+            <SelectValue placeholder={config.placeholder} />
+          </SelectTrigger>
+          <SelectContent>
+            {config.options.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      );
+    }
+    if (config.type === 'file') {
+      return (
+         <div className="flex items-center gap-2">
+          <Button type="button" variant="outline" asChild>
+             <label htmlFor={String(config.name)} className="cursor-pointer flex items-center gap-2">
+              <Upload className="h-4 w-4" /> Choose File
+            </label>
+          </Button>
+          <Input
+            id={String(config.name)}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => handleFileChange(e, field.onChange)}
+            ref={field.ref}
+          />
+          {field.value && (field.value as FileList)[0] && (
+            <span className="text-sm text-muted-foreground truncate max-w-xs">
+              {(field.value as FileList)[0].name}
+            </span>
+          )}
+        </div>
+      );
+    }
+    if (config.type === 'camera') {
+      return (
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-48 h-48 rounded-md border border-dashed bg-muted flex items-center justify-center overflow-hidden">
+            {photoPreview ? (
+              <Image src={photoPreview} alt="Photo preview" width={192} height={192} className="object-cover" data-ai-hint="portrait person"/>
+            ) : (
+              <Camera className="h-16 w-16 text-muted-foreground" />
+            )}
+          </div>
+          <Input
+            id={String(config.name)}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => handleFileChange(e, field.onChange)}
+            ref={field.ref}
+          />
+          <Button type="button" variant="outline" onClick={() => document.getElementById(String(config.name))?.click()}>
+            <Camera className="mr-2 h-4 w-4" /> Capture via Camera
+          </Button>
+          <p className="text-xs text-muted-foreground">Click to simulate camera capture (uses file upload)</p>
+        </div>
+      );
+    }
+    console.error(`Unrecognized field type: ${config.type} for field ${String(config.name)}`);
+    return <div>Unsupported field type: {config.type}</div>; // Fallback to ensure Slot gets a child
+  };
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
@@ -99,69 +173,7 @@ export function EnrollmentForm<T extends z.ZodType<any, any>>({
                 <FormItem className={config.type === 'camera' ? 'md:col-span-2' : ''}>
                   <FormLabel>{config.label}</FormLabel>
                   <FormControl>
-                    {config.type === 'text' && (
-                      <Input placeholder={config.placeholder} {...field} value={field.value || ''} />
-                    )}
-                    {config.type === 'select' && config.options && (
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <SelectTrigger>
-                          <SelectValue placeholder={config.placeholder} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {config.options.map((option) => (
-                            <SelectItem key={option.value} value={option.value}>
-                              {option.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                    {config.type === 'file' && (
-                       <div className="flex items-center gap-2">
-                        <Button type="button" variant="outline" asChild>
-                           <label htmlFor={String(config.name)} className="cursor-pointer flex items-center gap-2">
-                            <Upload className="h-4 w-4" /> Choose File
-                          </label>
-                        </Button>
-                        <Input
-                          id={String(config.name)}
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => handleFileChange(e, field.onChange)}
-                          ref={field.ref} // react-hook-form needs ref for file inputs
-                        />
-                        {field.value && (typeof field.value === 'object' && 'name' in field.value) && (
-                          <span className="text-sm text-muted-foreground truncate max-w-xs">
-                            {(field.value as unknown as FileList)[0]?.name}
-                          </span>
-                        )}
-                      </div>
-                    )}
-                    {config.type === 'camera' && (
-                      <div className="flex flex-col items-center gap-4">
-                        <div className="w-48 h-48 rounded-md border border-dashed bg-muted flex items-center justify-center overflow-hidden">
-                          {photoPreview ? (
-                            <Image src={photoPreview} alt="Photo preview" width={192} height={192} className="object-cover" data-ai-hint="portrait person"/>
-                          ) : (
-                            <Camera className="h-16 w-16 text-muted-foreground" />
-                          )}
-                        </div>
-                         {/* Hidden file input for camera capture simulation */}
-                        <Input
-                          id={String(config.name)}
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => handleFileChange(e, field.onChange)}
-                          ref={field.ref}
-                        />
-                        <Button type="button" variant="outline" onClick={() => document.getElementById(String(config.name))?.click()}>
-                          <Camera className="mr-2 h-4 w-4" /> Capture via Camera
-                        </Button>
-                        <p className="text-xs text-muted-foreground">Click to simulate camera capture (uses file upload)</p>
-                      </div>
-                    )}
+                    {renderFormControl(config, field)}
                   </FormControl>
                   <FormMessage />
                 </FormItem>
