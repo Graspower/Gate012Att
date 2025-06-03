@@ -13,9 +13,11 @@ const studentSchema = z.object({
   studentId: z.string().min(5, { message: 'Student ID must be at least 5 characters.' }),
   department: z.string().min(1, { message: 'Please select a department.' }),
   yearLevel: z.string().min(1, { message: 'Please select a year level.' }),
-  photo: z.instanceof(FileList).optional().nullable()
-    .refine(files => files === null || files === undefined || files.length === 0 || (files?.[0]?.size ?? 0) <= 5 * 1024 * 1024, `Max file size is 5MB.`)
-    .refine(files => files === null || files === undefined || files.length === 0 || (files?.[0]?.type?.startsWith("image/") ?? false), "Only images are allowed."),
+  photo: z.any().optional().nullable()
+    .refine(files => files === null || files === undefined || files.length === 0 || (files?.[0]?.size ?? 0) <= 5 * 1024 * 1024, 
+        { message: 'Max file size is 5MB.' })
+    .refine(files => files === null || files === undefined || files.length === 0 || (files?.[0]?.type?.startsWith("image/") ?? false), 
+        { message: "Only images are allowed."}),
 });
 
 const staffSchema = z.object({
@@ -23,9 +25,11 @@ const staffSchema = z.object({
   employeeId: z.string().min(5, { message: 'Employee ID must be at least 5 characters.' }),
   staffDepartment: z.string().min(1, { message: 'Please select a department.' }),
   position: z.string().min(2, { message: 'Position must be at least 2 characters.' }),
-  photo: z.instanceof(FileList).optional().nullable()
-  .refine(files => files === null || files === undefined || files.length === 0 || (files?.[0]?.size ?? 0) <= 5 * 1024 * 1024, `Max file size is 5MB.`)
-  .refine(files => files === null || files === undefined || files.length === 0 || (files?.[0]?.type?.startsWith("image/") ?? false), "Only images are allowed."),
+  photo: z.any().optional().nullable()
+  .refine(files => files === null || files === undefined || files.length === 0 || (files?.[0]?.size ?? 0) <= 5 * 1024 * 1024, 
+    { message: 'Max file size is 5MB.' })
+  .refine(files => files === null || files === undefined || files.length === 0 || (files?.[0]?.type?.startsWith("image/") ?? false), 
+    { message: "Only images are allowed."}),
 });
 
 const visitorSchema = z.object({
@@ -33,9 +37,11 @@ const visitorSchema = z.object({
   idType: z.string().min(1, { message: 'Please select an ID type.' }),
   idNumber: z.string().min(3, { message: 'ID Number must be at least 3 characters.' }),
   purposeOfVisit: z.string().min(5, { message: 'Purpose of visit must be at least 5 characters.' }),
-  photo: z.instanceof(FileList).optional().nullable()
-  .refine(files => files === null || files === undefined || files.length === 0 || (files?.[0]?.size ?? 0) <= 5 * 1024 * 1024, `Max file size is 5MB.`)
-  .refine(files => files === null || files === undefined || files.length === 0 || (files?.[0]?.type?.startsWith("image/") ?? false), "Only images are allowed."),
+  photo: z.any().optional().nullable()
+  .refine(files => files === null || files === undefined || files.length === 0 || (files?.[0]?.size ?? 0) <= 5 * 1024 * 1024, 
+    { message: 'Max file size is 5MB.' })
+  .refine(files => files === null || files === undefined || files.length === 0 || (files?.[0]?.type?.startsWith("image/") ?? false), 
+    { message: "Only images are allowed."}),
 });
 
 type StudentData = z.infer<typeof studentSchema>;
