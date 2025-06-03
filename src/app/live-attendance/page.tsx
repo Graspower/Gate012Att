@@ -18,10 +18,27 @@ interface LiveEntry {
   imageHint: string;
 }
 
-const initialEntries: LiveEntry[] = [
-  { id: '1', name: 'John Doe', adm: 'S1001', imageUrl: 'https://placehold.co/120x120.png', timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }), imageHint: 'man smiling' },
-  { id: '2', name: 'Jane Smith', adm: 'T2005', imageUrl: 'https://placehold.co/120x120.png', timestamp: new Date(Date.now() - 5000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }), imageHint: 'woman glasses' },
-];
+const generateInitialEntries = (count: number): LiveEntry[] => {
+  const entries: LiveEntry[] = [];
+  const baseNames = ["John Doe", "Jane Smith", "Alex Green", "Maria Blue", "Sam Brown"];
+  const baseHints = ["man smiling", "woman glasses", "person nature", "person city", "person serious"];
+  for (let i = 0; i < count; i++) {
+    const userTypes = ['S', 'T', 'N', 'V'];
+    const randomType = userTypes[Math.floor(Math.random() * userTypes.length)];
+    entries.push({
+      id: `initial-${i + 1}`,
+      name: `${baseNames[i % baseNames.length]}${i >= baseNames.length ? ' ' + (i+1) : ''}`,
+      adm: `${randomType}${1000 + i}`,
+      imageUrl: `https://placehold.co/120x120.png?id=initial${i}`,
+      timestamp: new Date(Date.now() - (count - i) * 15000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+      imageHint: baseHints[i % baseHints.length],
+    });
+  }
+  return entries;
+};
+
+
+const initialEntries: LiveEntry[] = generateInitialEntries(12);
 
 export default function LiveAttendancePage() {
   const [liveEntries, setLiveEntries] = useState<LiveEntry[]>(initialEntries);
@@ -60,7 +77,6 @@ export default function LiveAttendancePage() {
 
     getCameraPermission();
 
-    // Cleanup function to stop video stream when component unmounts
     return () => {
       if (videoRef.current && videoRef.current.srcObject) {
         const stream = videoRef.current.srcObject as MediaStream;
@@ -87,10 +103,12 @@ export default function LiveAttendancePage() {
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
         imageHint: randomHint,
       };
-      setLiveEntries(prevEntries => [newEntry, ...prevEntries].slice(0, 20)); // Keep last 20 entries
+      setLiveEntries(prevEntries => [newEntry, ...prevEntries].slice(0, 12)); // Keep last 12 entries
     }, 5000); 
 
-    setLiveEntries(prev => prev.map((e, index) => ({...e, timestamp: new Date(Date.now() - (index * 5000)).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) })));
+    // Initialize timestamps for initial entries correctly
+    setLiveEntries(prev => prev.map((e, index, arr) => ({...e, timestamp: new Date(Date.now() - (arr.length - 1 - index) * 5000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) })));
+
 
     return () => clearInterval(interval);
   }, []);
@@ -100,7 +118,7 @@ export default function LiveAttendancePage() {
     <div className="flex flex-col gap-6 h-full">
       <h1 className="text-3xl font-bold tracking-tight">Live Attendance Monitoring</h1>
       <div className="grid flex-1 gap-6 md:grid-cols-3 lg:grid-cols-4">
-        <Card className="md:col-span-1 lg:col-span-1 flex flex-col"> {/* Reduced camera feed size */}
+        <Card className="md:col-span-1 lg:col-span-1 flex flex-col">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Camera className="h-6 w-6" />
@@ -123,7 +141,7 @@ export default function LiveAttendancePage() {
           </CardContent>
         </Card>
 
-        <Card className="md:col-span-2 lg:col-span-3 flex flex-col"> {/* Increased recent activity size */}
+        <Card className="md:col-span-2 lg:col-span-3 flex flex-col">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Users className="h-6 w-6" />
@@ -131,7 +149,7 @@ export default function LiveAttendancePage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="flex-1 p-0">
-            <ScrollArea className="h-full p-4"> {/* Ensure ScrollArea can fill height */}
+            <ScrollArea className="h-full p-4"> 
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                 {liveEntries.map((entry) => (
                   <AttendanceCard
