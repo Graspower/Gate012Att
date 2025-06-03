@@ -42,15 +42,20 @@ body {
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
 
+    /* Header specific colors for light theme */
+    --header-background: 140 52% 55%; /* Emerald Green #50C878 */
+    --header-foreground: 0 0% 98%;    /* White text */
+    --header-border: 140 45% 45%;     /* Muted green for border */
+
     /* Sidebar specific colors for light theme */
-    --sidebar-background: 220 13% 91%; /* Slightly darker gray than page bg */
-    --sidebar-foreground: 231 48% 20%; /* Darker indigo for text */
-    --sidebar-primary: 231 48% 48%; /* Indigo for active/primary items */
-    --sidebar-primary-foreground: 0 0% 98%; /* Light text on active indigo */
-    --sidebar-accent: 220 13% 85%; /* Hover on sidebar items */
-    --sidebar-accent-foreground: 231 48% 20%; /* Text on hover */
-    --sidebar-border: 220 13% 80%; /* Border for sidebar elements */
-    --sidebar-ring: 231 48% 48%; /* Ring color for sidebar focus */
+    --sidebar-background: 140 52% 55%; /* Emerald Green #50C878 */
+    --sidebar-foreground: 0 0% 98%; /* White text */
+    --sidebar-primary: 140 55% 45%;  /* Darker emerald for active item background */
+    --sidebar-primary-foreground: 0 0% 98%; /* White text for active item */
+    --sidebar-accent: 140 50% 65%; /* Lighter emerald for hover background */
+    --sidebar-accent-foreground: 0 0% 98%; /* White text for hover */
+    --sidebar-border: 140 45% 40%; /* Darker emerald for border */
+    --sidebar-ring: 140 52% 50%; /* Emerald for ring */
   }
 
   .dark {
@@ -85,15 +90,20 @@ body {
     --chart-2: 174 100% 35%;
     /* ... other dark theme chart colors ... */
 
+    /* Header specific colors for dark theme */
+    --header-background: 140 50% 28%; /* Dark Emerald */
+    --header-foreground: 0 0% 98%;    /* White text */
+    --header-border: 140 45% 20%;     /* Darker green for border */
+
     /* Sidebar specific colors for dark theme */
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 231 48% 55%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 231 48% 55%;
+    --sidebar-background: 140 50% 28%; /* Dark Emerald */
+    --sidebar-foreground: 140 30% 85%; /* Light Minty Text */
+    --sidebar-primary: 140 55% 38%;   /* Active item bg - slightly more vibrant */
+    --sidebar-primary-foreground: 0 0% 98%; /* White text for active */
+    --sidebar-accent: 140 50% 33%;    /* Hover item bg */
+    --sidebar-accent-foreground: 140 30% 90%; /* Lighter minty text for hover */
+    --sidebar-border: 140 45% 20%;
+    --sidebar-ring: 140 55% 38%;
   }
 }
 

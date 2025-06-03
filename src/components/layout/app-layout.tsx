@@ -52,10 +52,10 @@ function AppSidebar() {
     <Sidebar className="border-r" collapsible="icon">
       <SidebarHeader className="p-4">
         <div className="flex items-center gap-2">
-          <Building className="h-8 w-8 text-primary" />
+          <Building className="h-8 w-8 text-sidebar-primary" />
           <h1
             className={cn(
-              "text-xl font-semibold text-foreground transition-opacity duration-300",
+              "text-xl font-semibold text-sidebar-foreground transition-opacity duration-300",
               open || isMobile ? "opacity-100" : "opacity-0"
             )}
           >
@@ -83,7 +83,11 @@ function AppSidebar() {
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter className="p-4">
-        <Button variant="ghost" onClick={toggleSidebar} className="w-full justify-start gap-2">
+        <Button 
+          variant="ghost" 
+          onClick={toggleSidebar} 
+          className="w-full justify-start gap-2 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+        >
           {open || isMobile ? <PanelLeftClose className="h-5 w-5" /> : <PanelLeftOpen className="h-5 w-5" />}
           <span className={cn(open || isMobile ? "inline" : "hidden")}>Collapse</span>
         </Button>
@@ -98,7 +102,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <div className="flex min-h-screen">
         <AppSidebar />
         <SidebarInset className="flex-1 bg-background">
-          <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/80 px-6 backdrop-blur-md md:justify-end">
+          <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-header-border bg-header px-6 text-header-foreground md:justify-end">
              <SidebarTrigger className="md:hidden" />
              {/* Future user profile / actions can go here */}
           </header>
