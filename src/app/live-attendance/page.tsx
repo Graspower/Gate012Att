@@ -15,8 +15,8 @@ interface LiveEntry {
 }
 
 const initialEntries: LiveEntry[] = [
-  { id: '1', name: 'John Doe', imageUrl: 'https://placehold.co/120x120.png', timestamp: new Date().toLocaleTimeString(), imageHint: 'man smiling' },
-  { id: '2', name: 'Jane Smith', imageUrl: 'https://placehold.co/120x120.png', timestamp: new Date(Date.now() - 5000).toLocaleTimeString(), imageHint: 'woman glasses' },
+  { id: '1', name: 'John Doe', imageUrl: 'https://placehold.co/120x120.png', timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }), imageHint: 'man smiling' },
+  { id: '2', name: 'Jane Smith', imageUrl: 'https://placehold.co/120x120.png', timestamp: new Date(Date.now() - 5000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }), imageHint: 'woman glasses' },
 ];
 
 export default function LiveAttendancePage() {
@@ -33,11 +33,15 @@ export default function LiveAttendancePage() {
         id: Math.random().toString(36).substring(7),
         name: randomName,
         imageUrl: `https://placehold.co/120x120.png?id=${Math.random()}`, // Add random query to get different placeholders
-        timestamp: new Date().toLocaleTimeString(),
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
         imageHint: randomHint,
       };
       setLiveEntries(prevEntries => [newEntry, ...prevEntries].slice(0, 10)); // Keep last 10 entries
     }, 5000); // Add a new entry every 5 seconds
+
+    // Set initial timestamps correctly
+    setLiveEntries(prev => prev.map(e => ({...e, timestamp: new Date(Date.now() - (prev.indexOf(e) * 5000)).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) })));
+
 
     return () => clearInterval(interval);
   }, []);
@@ -71,7 +75,7 @@ export default function LiveAttendancePage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="flex-1 p-0">
-            <ScrollArea className="h-[calc(100vh-18rem)] md:h-[calc(100vh-15rem)] p-4"> {/* Adjust height as needed */}
+            <ScrollArea className="h-full p-4">
               <div className="space-y-3">
                 {liveEntries.map((entry) => (
                   <AttendanceCard

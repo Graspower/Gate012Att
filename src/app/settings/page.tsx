@@ -75,7 +75,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 h-full">
       <h1 className="text-3xl font-bold tracking-tight">Customization & Settings</h1>
       <div className="grid gap-6 md:grid-cols-2">
         <Card>

@@ -98,18 +98,18 @@ export default function EnrollPage() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 h-full">
       <h1 className="text-3xl font-bold tracking-tight">User Enrollment</h1>
-      <Card>
-        <CardContent className="pt-6">
-          <Tabs defaultValue="students">
+      <Card className="flex flex-col flex-1">
+        <CardContent className="pt-6 flex flex-col flex-1">
+          <Tabs defaultValue="students" className="flex flex-col flex-1">
             <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
               <TabsTrigger value="students">Students</TabsTrigger>
               <TabsTrigger value="teaching-staff">Teaching Staff</TabsTrigger>
               <TabsTrigger value="non-teaching-staff">Non-Teaching Staff</TabsTrigger>
               <TabsTrigger value="visitors">Visitors/Guardians</TabsTrigger>
             </TabsList>
-            <TabsContent value="students" className="mt-6">
+            <TabsContent value="students" className="mt-6 flex-1">
               <EnrollmentForm
                 schema={studentSchema}
                 onSubmit={handleStudentSubmit}
@@ -117,7 +117,7 @@ export default function EnrollPage() {
                 categoryName="Student"
               />
             </TabsContent>
-            <TabsContent value="teaching-staff" className="mt-6">
+            <TabsContent value="teaching-staff" className="mt-6 flex-1">
               <EnrollmentForm
                 schema={staffSchema}
                 onSubmit={handleStaffSubmit}
@@ -125,7 +125,7 @@ export default function EnrollPage() {
                 categoryName="Teaching Staff"
               />
             </TabsContent>
-            <TabsContent value="non-teaching-staff" className="mt-6">
+            <TabsContent value="non-teaching-staff" className="mt-6 flex-1">
              <EnrollmentForm
                 schema={staffSchema}
                 onSubmit={handleStaffSubmit}
@@ -133,7 +133,7 @@ export default function EnrollPage() {
                 categoryName="Non-Teaching Staff"
               />
             </TabsContent>
-            <TabsContent value="visitors" className="mt-6">
+            <TabsContent value="visitors" className="mt-6 flex-1">
               <EnrollmentForm
                 schema={visitorSchema}
                 onSubmit={handleVisitorSubmit}

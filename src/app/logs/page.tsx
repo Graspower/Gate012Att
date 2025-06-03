@@ -23,6 +23,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Download, Filter, CalendarIcon } from 'lucide-react';
 import type { DateRange } from 'react-day-picker';
 import { format } from 'date-fns';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface LogEntry {
   id: string;
@@ -42,6 +43,16 @@ const mockLogs: LogEntry[] = [
   { id: '5', userId: 'V4004', name: 'David Brown', category: 'Visitor', timestamp: new Date('2023-10-26T10:15:00'), type: 'Entry', gate: 'Visitor Gate' },
   { id: '6', userId: 'S1002', name: 'Eve Davis', category: 'Student', timestamp: new Date('2023-10-27T08:10:00'), type: 'Entry', gate: 'Main Gate' },
   { id: '7', userId: 'T2002', name: 'Bob Johnson', category: 'Teaching Staff', timestamp: new Date('2023-10-27T16:00:00'), type: 'Exit', gate: 'Main Gate' },
+  // Add more logs to demonstrate scrolling
+  ...Array.from({ length: 20 }, (_, i) => ({
+    id: `L${100 + i}`,
+    userId: `U${2000 + i}`,
+    name: `User ${String.fromCharCode(65 + (i % 26))}${String.fromCharCode(97 + (i % 26))}erson`,
+    category: (['Student', 'Teaching Staff', 'Non-Teaching Staff', 'Visitor'] as LogEntry['category'][])[i % 4],
+    timestamp: new Date(Date.now() - Math.random() * 1000 * 60 * 60 * 24 * 5), // Random time in last 5 days
+    type: (['Entry', 'Exit'] as LogEntry['type'][])[i % 2],
+    gate: `Gate ${ (i % 3) + 1}`,
+  })),
 ];
 
 export default function LogsPage() {
@@ -62,7 +73,7 @@ export default function LogsPage() {
         (log.timestamp >= dateRange.from && (!dateRange.to || log.timestamp <= new Date(dateRange.to.getTime() + 86399999))); // Include end of day
 
       return matchesSearch && matchesCategory && matchesDate;
-    });
+    }).sort((a,b) => b.timestamp.getTime() - a.timestamp.getTime());
   }, [searchTerm, categoryFilter, dateRange]);
 
   const handleExport = () => {
@@ -94,9 +105,9 @@ export default function LogsPage() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 h-full">
       <h1 className="text-3xl font-bold tracking-tight">Logs and Records</h1>
-      <div className="space-y-4 rounded-lg border p-4 shadow-sm">
+      <div className="space-y-4 rounded-lg border p-4 shadow-sm bg-card">
         <div className="flex flex-wrap items-center gap-4">
           <Input
             placeholder="Search by name or ID..."
@@ -156,9 +167,9 @@ export default function LogsPage() {
         </div>
       </div>
 
-      <div className="rounded-lg border shadow-sm">
+      <ScrollArea className="flex-1 rounded-lg border shadow-sm bg-card">
         <Table>
-          <TableHeader>
+          <TableHeader className="sticky top-0 bg-card z-10">
             <TableRow>
               <TableHead>User ID</TableHead>
               <TableHead>Name</TableHead>
@@ -178,7 +189,7 @@ export default function LogsPage() {
                   <TableCell>{format(log.timestamp, 'Pp')}</TableCell>
                   <TableCell>
                     <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      log.type === 'Entry' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                      log.type === 'Entry' ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
                     }`}>
                       {log.type}
                     </span>
@@ -195,7 +206,7 @@ export default function LogsPage() {
             )}
           </TableBody>
         </Table>
-      </div>
+      </ScrollArea>
     </div>
   );
 }
