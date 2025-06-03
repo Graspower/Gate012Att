@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -103,7 +104,7 @@ export default function EnrollPage() {
       <Card className="flex flex-col flex-1">
         <CardContent className="pt-6 flex flex-col flex-1">
           <Tabs defaultValue="students" className="flex flex-col flex-1">
-            <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="students">Students</TabsTrigger>
               <TabsTrigger value="teaching-staff">Teaching Staff</TabsTrigger>
               <TabsTrigger value="non-teaching-staff">Non-Teaching Staff</TabsTrigger>
