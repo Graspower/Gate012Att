@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -16,7 +17,8 @@ export default function HomePage() {
     const timer = setInterval(() => {
       setCurrentTime(new Date().toLocaleTimeString());
     }, 1000);
-    setCurrentTime(new Date().toLocaleTimeString()); // Initial time
+    // Set initial time immediately
+    setCurrentTime(new Date().toLocaleTimeString()); 
     return () => clearInterval(timer);
   }, []);
 
@@ -72,7 +74,7 @@ export default function HomePage() {
                 className={`h-3 w-3 rounded-full ${systemStatus.color}`}
                 aria-hidden="true"
               />
-              <div className="text-xl font-bold">{systemStatus.message}</div>
+              <div className="text-xl font-bold w-40">{systemStatus.message}</div>
             </div>
             <p className="text-xs text-muted-foreground">Real-time connectivity</p>
           </CardContent>
