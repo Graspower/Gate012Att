@@ -100,7 +100,7 @@ export default function EnrollPage() {
 
   return (
     <div className="flex flex-col gap-6 h-full">
-      <h1 className="text-3xl font-bold tracking-tight">User Enrollment</h1>
+      <h1 className="text-4xl font-bold tracking-tight">User Enrollment</h1>
       <Card className="flex flex-col flex-1">
         <CardContent className="pt-6 flex flex-col flex-1">
           <Tabs defaultValue="students" className="flex flex-col flex-1">
