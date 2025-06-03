@@ -13,6 +13,7 @@ interface LiveEntry {
   id: string;
   name: string;
   adm: string; // Admission number or ID
+  course: string;
   imageUrl: string;
   timestamp: string;
   imageHint: string;
@@ -20,8 +21,10 @@ interface LiveEntry {
 
 const generateInitialEntries = (count: number): LiveEntry[] => {
   const entries: LiveEntry[] = [];
-  const baseNames = ["John Doe", "Jane Smith", "Alex Green", "Maria Blue", "Sam Brown"];
-  const baseHints = ["man smiling", "woman glasses", "person nature", "person city", "person serious"];
+  const baseNames = ["John Doe", "Jane Smith", "Alex Green", "Maria Blue", "Sam Brown", "Carlos Ray", "Lisa Wong", "Ken Adams", "Sara Lee", "Omar Hassan", "Nina Patel", "Leo Geller"];
+  const baseHints = ["man smiling", "woman glasses", "person nature", "person city", "person serious", "man sunglasses", "woman outdoor", "man indoor", "woman happy", "man thinking", "woman studio", "man casual"];
+  const baseCourses = ["Computer Science", "Electrical Engineering", "Mechanical Engineering", "Business Administration", "Fine Arts", "Civil Engineering", "Psychology", "Graphic Design", "Nursing", "Architecture", "Literature", "Physics"];
+  
   for (let i = 0; i < count; i++) {
     const userTypes = ['S', 'T', 'N', 'V'];
     const randomType = userTypes[Math.floor(Math.random() * userTypes.length)];
@@ -29,7 +32,8 @@ const generateInitialEntries = (count: number): LiveEntry[] => {
       id: `initial-${i + 1}`,
       name: `${baseNames[i % baseNames.length]}${i >= baseNames.length ? ' ' + (i+1) : ''}`,
       adm: `${randomType}${1000 + i}`,
-      imageUrl: `https://placehold.co/120x120.png?id=initial${i}`,
+      course: baseCourses[i % baseCourses.length],
+      imageUrl: `https://placehold.co/200x160.png?id=initial${i}`, // Adjusted placeholder to better match aspect ratio
       timestamp: new Date(Date.now() - (count - i) * 15000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
       imageHint: baseHints[i % baseHints.length],
     });
@@ -89,8 +93,11 @@ export default function LiveAttendancePage() {
     const interval = setInterval(() => {
       const names = ["Michael Brown", "Emily White", "David Green", "Sarah Black", "Chris Blue"];
       const hints = ["man glasses", "woman nature", "man city", "woman smiling", "man serious"];
+      const courses = ["Journalism", "Marketing", "Software Dev", "Data Science", "UX Design"];
+      
       const randomName = names[Math.floor(Math.random() * names.length)];
       const randomHint = hints[Math.floor(Math.random() * hints.length)];
+      const randomCourse = courses[Math.floor(Math.random() * courses.length)];
       const userTypes = ['S', 'T', 'N', 'V'];
       const randomType = userTypes[Math.floor(Math.random() * userTypes.length)];
       const randomAdm = `${randomType}${Math.floor(1000 + Math.random() * 9000)}`;
@@ -99,7 +106,8 @@ export default function LiveAttendancePage() {
         id: Math.random().toString(36).substring(7),
         name: randomName,
         adm: randomAdm,
-        imageUrl: `https://placehold.co/120x120.png?id=${Math.random()}`,
+        course: randomCourse,
+        imageUrl: `https://placehold.co/200x160.png?id=${Math.random()}`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
         imageHint: randomHint,
       };
@@ -150,13 +158,14 @@ export default function LiveAttendancePage() {
           </CardHeader>
           <CardContent className="flex-1 p-0">
             <ScrollArea className="h-full p-4"> 
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {liveEntries.map((entry) => (
                   <AttendanceCard
                     key={entry.id}
                     imageUrl={entry.imageUrl}
                     name={entry.name}
                     adm={entry.adm}
+                    course={entry.course}
                     timestamp={entry.timestamp}
                     imageHint={entry.imageHint}
                   />
