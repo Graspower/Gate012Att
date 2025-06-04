@@ -42,14 +42,14 @@ const generateInitialEntries = (count: number): LiveEntry[] => {
 
   for (let i = 0; i < count; i++) {
     const userType = userTypes[i % userTypes.length]; 
-    const entryDate = new Date(fixedBaseTime + (count - 1 - i) * 15000); 
+    const entryDate = new Date(fixedBaseTime + (count - 1 - i) * 15000); // Deterministic timestamp
 
     entries.push({
       id: `initial-${i + 1}`,
       name: `${baseNames[i % baseNames.length]}${i >= baseNames.length ? ' ' + (i + 1) : ''}`,
-      adm: `${userType}${1000 + i}`,
+      adm: `${userType}${1000 + i}`, // Deterministic adm
       course: baseCourses[i % baseCourses.length],
-      imageUrl: `https://placehold.co/200x160.png?id=initial${i}`,
+      imageUrl: `https://placehold.co/200x160.png?id=initial${i}`, // Deterministic URL
       timestamp: format(entryDate, 'HH:mm:ss'), 
       imageHint: baseHints[i % baseHints.length],
     });
@@ -71,7 +71,7 @@ export default function LiveAttendancePage() {
   const [isResultsDialogOpen, setIsResultsDialogOpen] = useState(false);
 
   const getCameraPermission = async () => {
-    setHasCameraPermission(null);
+    setHasCameraPermission(null); // Reset to loading state
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       console.error('MediaDevices API not supported.');
       setHasCameraPermission(false);
@@ -143,6 +143,7 @@ export default function LiveAttendancePage() {
       toast({ variant: 'destructive', title: 'Invalid Input', description: 'Please enter an ADM number.' });
       return;
     }
+    // Search in both initial (more static) and currently live entries
     const learner = [...initialEntriesData, ...liveEntries].find(entry => entry.adm.toLowerCase() === admSearch.toLowerCase());
     
     setIsAdmInputDialogOpen(false); // Close ADM dialog first
@@ -152,9 +153,10 @@ export default function LiveAttendancePage() {
       setIsResultsDialogOpen(true); // Then open results dialog
     } else {
       setFoundLearner(null);
+      // Use a default toast if not found, destructive might be too strong
       toast({ variant: 'default', title: 'Not Found', description: `No learner found with ADM: ${admSearch}` });
     }
-    setAdmSearch(''); 
+    setAdmSearch(''); // Clear search input
   };
 
   return (
@@ -162,7 +164,7 @@ export default function LiveAttendancePage() {
       <div className="flex flex-col h-full gap-6">
         <h1 className="text-3xl font-bold tracking-tight">Live Attendance Monitoring</h1>
         <div className="grid flex-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="md:col-span-1 lg:col-span-1 lg:row-span-2 flex flex-col">
+          <Card className="md:col-span-1 lg:col-span-1 lg:row-span-2 flex flex-col lg:max-w-md">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Camera className="h-6 w-6" />
@@ -209,7 +211,7 @@ export default function LiveAttendancePage() {
             </CardHeader>
             <CardContent className="flex-1 p-0">
               <ScrollArea className="h-full p-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {liveEntries.map((entry) => (
                     <AttendanceCard
                       key={entry.id}
