@@ -2,17 +2,31 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { AttendanceCard } from '@/components/live-attendance/attendance-card';
-import { Camera, Users } from 'lucide-react';
+import { Camera, Users, RefreshCw, Search } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+  DialogClose,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import Image from 'next/image';
+import { Label } from '@/components/ui/label';
 
 interface LiveEntry {
   id: string;
   name: string;
-  adm: string; // Admission number or ID
+  adm: string; 
   course: string;
   imageUrl: string;
   timestamp: string;
@@ -33,7 +47,7 @@ const generateInitialEntries = (count: number): LiveEntry[] => {
       name: `${baseNames[i % baseNames.length]}${i >= baseNames.length ? ' ' + (i+1) : ''}`,
       adm: `${randomType}${1000 + i}`,
       course: baseCourses[i % baseCourses.length],
-      imageUrl: `https://placehold.co/200x160.png?id=initial${i}`, // Adjusted placeholder to better match aspect ratio
+      imageUrl: `https://placehold.co/200x160.png?id=initial${i}`,
       timestamp: new Date(Date.now() - (count - i) * 15000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
       imageHint: baseHints[i % baseHints.length],
     });
@@ -41,44 +55,52 @@ const generateInitialEntries = (count: number): LiveEntry[] => {
   return entries;
 };
 
-
-const initialEntries: LiveEntry[] = generateInitialEntries(12);
+const initialEntriesData: LiveEntry[] = generateInitialEntries(12);
 
 export default function LiveAttendancePage() {
-  const [liveEntries, setLiveEntries] = useState<LiveEntry[]>(initialEntries);
+  const [liveEntries, setLiveEntries] = useState<LiveEntry[]>(initialEntriesData);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const { toast } = useToast();
+  const [admSearch, setAdmSearch] = useState('');
+  const [foundLearner, setFoundLearner] = useState<LiveEntry | null>(null);
+  const showResultsDialogTriggerRef = useRef<HTMLButtonElement>(null);
+  const admInputDialogCloseRef = useRef<HTMLButtonElement>(null);
+
+  const getCameraPermission = async () => {
+    setHasCameraPermission(null); // Reset status while attempting
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      console.error('MediaDevices API not supported.');
+      setHasCameraPermission(false);
+      toast({
+        variant: 'destructive',
+        title: 'Camera Not Supported',
+        description: 'Your browser does not support camera access.',
+      });
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      setHasCameraPermission(true);
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+      toast({
+        title: 'Camera Access Granted',
+        description: 'Live feed should be active.',
+      });
+    } catch (error) {
+      console.error('Error accessing camera:', error);
+      setHasCameraPermission(false);
+      toast({
+        variant: 'destructive',
+        title: 'Camera Access Denied',
+        description: 'Please enable camera permissions in your browser settings and retry.',
+      });
+    }
+  };
 
   useEffect(() => {
-    const getCameraPermission = async () => {
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        console.error('MediaDevices API not supported.');
-        setHasCameraPermission(false);
-        toast({
-          variant: 'destructive',
-          title: 'Camera Not Supported',
-          description: 'Your browser does not support camera access.',
-        });
-        return;
-      }
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        setHasCameraPermission(true);
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-      } catch (error) {
-        console.error('Error accessing camera:', error);
-        setHasCameraPermission(false);
-        toast({
-          variant: 'destructive',
-          title: 'Camera Access Denied',
-          description: 'Please enable camera permissions in your browser settings to use this feature.',
-        });
-      }
-    };
-
     getCameraPermission();
 
     return () => {
@@ -87,7 +109,8 @@ export default function LiveAttendancePage() {
         stream.getTracks().forEach(track => track.stop());
       }
     };
-  }, [toast]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Toast is stable, getCameraPermission is memoized by being outside or use useCallback if defined inside
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -111,76 +134,169 @@ export default function LiveAttendancePage() {
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
         imageHint: randomHint,
       };
-      setLiveEntries(prevEntries => [newEntry, ...prevEntries].slice(0, 12)); // Keep last 12 entries
+      setLiveEntries(prevEntries => [newEntry, ...prevEntries].slice(0, 12)); 
     }, 5000); 
 
-    // Initialize timestamps for initial entries correctly
     setLiveEntries(prev => prev.map((e, index, arr) => ({...e, timestamp: new Date(Date.now() - (arr.length - 1 - index) * 5000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) })));
-
 
     return () => clearInterval(interval);
   }, []);
 
+  const handleAdmSearch = () => {
+    if (!admSearch.trim()) {
+      toast({ variant: 'destructive', title: 'Invalid Input', description: 'Please enter an ADM number.' });
+      return;
+    }
+    const learner = initialEntriesData.find(entry => entry.adm.toLowerCase() === admSearch.toLowerCase());
+    if (learner) {
+      setFoundLearner(learner);
+      showResultsDialogTriggerRef.current?.click();
+    } else {
+      setFoundLearner(null);
+      toast({ variant: 'default', title: 'Not Found', description: `No learner found with ADM: ${admSearch}` });
+    }
+    admInputDialogCloseRef.current?.click(); // Close input dialog
+    setAdmSearch(''); // Reset search input
+  };
 
   return (
-    <div className="flex flex-col gap-6 h-full">
-      <h1 className="text-3xl font-bold tracking-tight">Live Attendance Monitoring</h1>
-      <div className="grid flex-1 gap-6 md:grid-cols-3 lg:grid-cols-4">
-        <Card className="md:col-span-1 lg:col-span-1 flex flex-col">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Camera className="h-6 w-6" />
-              Live Camera Feed
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex-1 flex flex-col items-center justify-center bg-muted rounded-b-lg p-4">
-            <video ref={videoRef} className="w-full aspect-video rounded-md bg-black" autoPlay muted playsInline />
-            {hasCameraPermission === false && (
-              <Alert variant="destructive" className="mt-4">
-                <AlertTitle>Camera Access Required</AlertTitle>
-                <AlertDescription>
-                  Please allow camera access to use this feature. The feed above might be black or frozen.
-                </AlertDescription>
-              </Alert>
-            )}
-             {hasCameraPermission === null && (
-              <p className="text-sm text-muted-foreground mt-2">Initializing camera...</p>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card className="md:col-span-2 lg:col-span-3 flex flex-col">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-6 w-6" />
-              Recent Activity
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex-1 p-0">
-            <ScrollArea className="h-full p-4"> 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {liveEntries.map((entry) => (
-                  <AttendanceCard
-                    key={entry.id}
-                    imageUrl={entry.imageUrl}
-                    name={entry.name}
-                    adm={entry.adm}
-                    course={entry.course}
-                    timestamp={entry.timestamp}
-                    imageHint={entry.imageHint}
-                  />
-                ))}
-                {liveEntries.length === 0 && (
-                  <p className="text-sm text-muted-foreground text-center py-8 col-span-full">
-                    No recent activity.
-                  </p>
+    <Dialog> {/* Main Dialog for ADM Input */}
+      <div className="flex flex-col h-full gap-6">
+        <h1 className="text-3xl font-bold tracking-tight">Live Attendance Monitoring</h1>
+        <div className="grid flex-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+          {/* Camera Feed Card */}
+          <Card className="md:col-span-1 lg:col-span-1 lg:row-span-2 flex flex-col">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Camera className="h-6 w-6" />
+                Live Camera Feed
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex-1 flex flex-col items-center justify-between p-4">
+              <div className="w-full">
+                <video ref={videoRef} className="w-full aspect-video rounded-md bg-black" autoPlay muted playsInline />
+                {hasCameraPermission === false && (
+                  <Alert variant="destructive" className="mt-4 w-full">
+                    <AlertTitle>Camera Access Denied</AlertTitle>
+                    <AlertDescription>
+                      Camera is not accessible. Try enabling permissions or retrying.
+                    </AlertDescription>
+                  </Alert>
+                )}
+                {hasCameraPermission === null && (
+                  <p className="text-sm text-muted-foreground mt-2">Initializing camera...</p>
                 )}
               </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
+              <div className="mt-4 w-full space-y-2">
+                <Button onClick={getCameraPermission} variant="outline" className="w-full">
+                  <RefreshCw className="mr-2 h-4 w-4" /> Retry Camera
+                </Button>
+                <DialogTrigger asChild>
+                  <Button 
+                    variant={hasCameraPermission === false ? "destructive" : "default"} 
+                    className="w-full"
+                  >
+                    <Search className="mr-2 h-4 w-4" />
+                    {hasCameraPermission === false ? "Camera Offline: Find by ADM" : "Find by ADM"}
+                  </Button>
+                </DialogTrigger>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Recent Activity Card */}
+          <Card className="md:col-span-1 lg:col-span-3 lg:row-span-2 flex flex-col">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-6 w-6" />
+                Recent Activity
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex-1 p-0">
+              <ScrollArea className="h-full p-4"> 
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-2 gap-4"> {/* Adjusted grid for fewer columns on larger screens */}
+                  {liveEntries.map((entry) => (
+                    <AttendanceCard
+                      key={entry.id}
+                      imageUrl={entry.imageUrl}
+                      name={entry.name}
+                      adm={entry.adm}
+                      course={entry.course}
+                      timestamp={entry.timestamp}
+                      imageHint={entry.imageHint}
+                    />
+                  ))}
+                  {liveEntries.length === 0 && (
+                    <p className="text-sm text-muted-foreground text-center py-8 col-span-full">
+                      No recent activity.
+                    </p>
+                  )}
+                </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+        </div>
       </div>
-    </div>
+
+      {/* ADM Input Dialog Content */}
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Find Learner by ADM</DialogTitle>
+          <DialogDescription>
+            Enter the Admission Number (ADM) to search for a learner.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="adm-search" className="text-right">
+              ADM No.
+            </Label>
+            <Input
+              id="adm-search"
+              value={admSearch}
+              onChange={(e) => setAdmSearch(e.target.value)}
+              className="col-span-3"
+              placeholder="e.g., S1001"
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button type="button" variant="outline" ref={admInputDialogCloseRef}>Cancel</Button>
+          </DialogClose>
+          <Button type="button" onClick={handleAdmSearch}>Search</Button>
+        </DialogFooter>
+      </DialogContent>
+      
+      {/* Hidden Dialog Trigger for Learner Details */}
+      <Dialog> {/* This Dialog is for showing results */}
+        <DialogTrigger asChild>
+          <Button ref={showResultsDialogTriggerRef} className="hidden">Show Results</Button>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Learner Details</DialogTitle>
+          </DialogHeader>
+          {foundLearner ? (
+            <div className="space-y-3 py-4">
+              <div className="relative w-full h-48 rounded-md overflow-hidden bg-muted">
+                <Image src={foundLearner.imageUrl} alt={`Photo of ${foundLearner.name}`} layout="fill" objectFit="cover" data-ai-hint={foundLearner.imageHint} />
+              </div>
+              <h3 className="text-xl font-semibold">{foundLearner.name}</h3>
+              <p className="text-sm"><span className="font-medium text-muted-foreground">ADM No:</span> {foundLearner.adm}</p>
+              <p className="text-sm"><span className="font-medium text-muted-foreground">Course:</span> {foundLearner.course}</p>
+              <p className="text-sm"><span className="font-medium text-muted-foreground">Last Seen:</span> {foundLearner.timestamp}</p>
+            </div>
+          ) : (
+            <p className="py-4">No learner details to display.</p>
+          )}
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button type="button">Close</Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </Dialog>
   );
 }
-
