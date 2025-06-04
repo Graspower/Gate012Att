@@ -28,9 +28,9 @@ export const FlipUnit: React.FC<FlipUnitProps> = memo(({ currentValue, previousV
       <div className="flip-card-static-top">
         <span>{currentValue}</span>
       </div>
-      {/* Static bottom half showing the new value */}
+      {/* Static bottom half: show PREVIOUS during flip, NEW otherwise */}
       <div className="flip-card-static-bottom">
-        <span>{currentValue}</span>
+        <span>{isFlipping ? previousValue : currentValue}</span>
       </div>
       {/* Top flap that animates, shows the previous value */}
       <div
@@ -39,6 +39,7 @@ export const FlipUnit: React.FC<FlipUnitProps> = memo(({ currentValue, previousV
           isFlipping && 'animate-flip-top'
         )}
       >
+        {/* Content of top flap should be previous during flip, current otherwise to match visual state before/after flip */}
         <span>{isFlipping ? previousValue : currentValue}</span>
       </div>
       {/* Bottom flap that is revealed, shows the new value */}
@@ -55,3 +56,4 @@ export const FlipUnit: React.FC<FlipUnitProps> = memo(({ currentValue, previousV
 });
 
 FlipUnit.displayName = 'FlipUnit';
+
