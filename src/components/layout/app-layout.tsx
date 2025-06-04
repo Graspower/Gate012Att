@@ -101,7 +101,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const [currentDateHeader, setCurrentDateHeader] = React.useState<string | null>(null);
 
   React.useEffect(() => {
-    setCurrentDateHeader(format(new Date(), 'EEE, d, MMM').toUpperCase());
+    setCurrentDateHeader(format(new Date(), 'EEE, d, MMM').toLowerCase());
   }, []);
 
   return (
@@ -115,13 +115,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <SidebarTrigger className="md:hidden" />
             </div>
 
-            {/* Right section: Date card and placeholder for user profile/actions */}
+            {/* Right section: Date display and placeholder for user profile/actions */}
             <div className="flex items-center">
               {currentDateHeader && (
-                <div className="bg-white text-slate-900 p-2 px-3 rounded-lg shadow-md">
-                  <div className="text-xl font-bold tracking-tight">
-                    {currentDateHeader}
-                  </div>
+                <div className="text-emerald-600 text-xl font-bold tracking-tight">
+                  {currentDateHeader}
                 </div>
               )}
               {/* User profile / actions can go here in the future, e.g., <UserButton /> */}
