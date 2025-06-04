@@ -15,9 +15,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
-  DialogClose,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import Image from 'next/image';
@@ -30,7 +28,7 @@ interface LiveEntry {
   adm: string;
   course: string;
   imageUrl: string;
-  timestamp: string; // Store as HH:mm:ss string
+  timestamp: string; 
   imageHint: string;
 }
 
@@ -40,12 +38,11 @@ const generateInitialEntries = (count: number): LiveEntry[] => {
   const baseHints = ["man smiling", "woman glasses", "person nature", "person city", "person serious", "man sunglasses", "woman outdoor", "man indoor", "woman happy", "man thinking", "woman studio", "man casual"];
   const baseCourses = ["Computer Science", "Electrical Engineering", "Mechanical Engineering", "Business Administration", "Fine Arts", "Civil Engineering", "Psychology", "Graphic Design", "Nursing", "Architecture", "Literature", "Physics"];
   const userTypes = ['S', 'T', 'N', 'V'];
-  // Use a fixed date far in the past for base time to ensure consistent sorting if needed, and add offsets.
   const fixedBaseTime = new Date('2023-01-01T00:00:00Z').getTime();
 
   for (let i = 0; i < count; i++) {
-    const userType = userTypes[i % userTypes.length]; // Deterministic type
-    const entryDate = new Date(fixedBaseTime + (count - 1 - i) * 15000); // Deterministic, newest first in loop
+    const userType = userTypes[i % userTypes.length]; 
+    const entryDate = new Date(fixedBaseTime + (count - 1 - i) * 15000); 
 
     entries.push({
       id: `initial-${i + 1}`,
@@ -53,11 +50,11 @@ const generateInitialEntries = (count: number): LiveEntry[] => {
       adm: `${userType}${1000 + i}`,
       course: baseCourses[i % baseCourses.length],
       imageUrl: `https://placehold.co/200x160.png?id=initial${i}`,
-      timestamp: format(entryDate, 'HH:mm:ss'), // Fixed format
+      timestamp: format(entryDate, 'HH:mm:ss'), 
       imageHint: baseHints[i % baseHints.length],
     });
   }
-  return entries; // Already newest first due to loop logic
+  return entries; 
 };
 
 const initialEntriesData: LiveEntry[] = generateInitialEntries(12);
@@ -69,8 +66,9 @@ export default function LiveAttendancePage() {
   const { toast } = useToast();
   const [admSearch, setAdmSearch] = useState('');
   const [foundLearner, setFoundLearner] = useState<LiveEntry | null>(null);
-  const showResultsDialogTriggerRef = useRef<HTMLButtonElement>(null);
-  const admInputDialogCloseRef = useRef<HTMLButtonElement>(null);
+
+  const [isAdmInputDialogOpen, setIsAdmInputDialogOpen] = useState(false);
+  const [isResultsDialogOpen, setIsResultsDialogOpen] = useState(false);
 
   const getCameraPermission = async () => {
     setHasCameraPermission(null);
@@ -122,9 +120,9 @@ export default function LiveAttendancePage() {
         id: Math.random().toString(36).substring(7),
         name: names[randomNameIndex],
         adm: `${userTypes[randomTypeIndex]}${randomAdmSuffix}`,
-        course: courses[randomNameIndex % courses.length], // Use same index for consistency or another random
+        course: courses[randomNameIndex % courses.length], 
         imageUrl: `https://placehold.co/200x160.png?id=${Math.random()}`,
-        timestamp: format(new Date(), 'HH:mm:ss'), // Fixed format for new entries
+        timestamp: format(new Date(), 'HH:mm:ss'), 
         imageHint: hints[randomNameIndex],
       };
       setLiveEntries(prevEntries => [newEntry, ...prevEntries].slice(0, 12));
@@ -145,25 +143,22 @@ export default function LiveAttendancePage() {
       toast({ variant: 'destructive', title: 'Invalid Input', description: 'Please enter an ADM number.' });
       return;
     }
-    // Search in current liveEntries as well, or a more comprehensive list if available
     const learner = [...initialEntriesData, ...liveEntries].find(entry => entry.adm.toLowerCase() === admSearch.toLowerCase());
+    
+    setIsAdmInputDialogOpen(false); // Close ADM dialog first
+
     if (learner) {
       setFoundLearner(learner);
-      if (showResultsDialogTriggerRef.current) {
-         showResultsDialogTriggerRef.current.click();
-      }
+      setIsResultsDialogOpen(true); // Then open results dialog
     } else {
       setFoundLearner(null);
       toast({ variant: 'default', title: 'Not Found', description: `No learner found with ADM: ${admSearch}` });
     }
-    if (admInputDialogCloseRef.current) {
-      admInputDialogCloseRef.current.click();
-    }
-    setAdmSearch('');
+    setAdmSearch(''); 
   };
 
   return (
-    <Dialog> {/* Main Dialog for ADM Input */}
+    <>
       <div className="flex flex-col h-full gap-6">
         <h1 className="text-3xl font-bold tracking-tight">Live Attendance Monitoring</h1>
         <div className="grid flex-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -193,15 +188,14 @@ export default function LiveAttendancePage() {
                 <Button onClick={getCameraPermission} variant="outline" className="w-full">
                   <RefreshCw className="mr-2 h-4 w-4" /> Retry Camera
                 </Button>
-                <DialogTrigger asChild>
-                  <Button
-                    variant={hasCameraPermission === false ? "destructive" : "default"}
-                    className="w-full"
-                  >
-                    <Search className="mr-2 h-4 w-4" />
-                    {hasCameraPermission === false ? "Camera Offline: Find by ADM" : "Find by ADM"}
-                  </Button>
-                </DialogTrigger>
+                <Button
+                  onClick={() => setIsAdmInputDialogOpen(true)}
+                  variant={hasCameraPermission === false ? "destructive" : "default"}
+                  className="w-full"
+                >
+                  <Search className="mr-2 h-4 w-4" />
+                  {hasCameraPermission === false ? "Camera Offline: Find by ADM" : "Find by ADM"}
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -239,39 +233,38 @@ export default function LiveAttendancePage() {
         </div>
       </div>
 
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Find Learner by ADM</DialogTitle>
-          <DialogDescription>
-            Enter the Admission Number (ADM) to search for a learner.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="adm-search" className="text-right">
-              ADM No.
-            </Label>
-            <Input
-              id="adm-search"
-              value={admSearch}
-              onChange={(e) => setAdmSearch(e.target.value)}
-              className="col-span-3"
-              placeholder="e.g., S1001"
-            />
+      {/* ADM Input Dialog */}
+      <Dialog open={isAdmInputDialogOpen} onOpenChange={setIsAdmInputDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Find Learner by ADM</DialogTitle>
+            <DialogDescription>
+              Enter the Admission Number (ADM) to search for a learner.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="adm-search" className="text-right">
+                ADM No.
+              </Label>
+              <Input
+                id="adm-search"
+                value={admSearch}
+                onChange={(e) => setAdmSearch(e.target.value)}
+                className="col-span-3"
+                placeholder="e.g., S1001"
+              />
+            </div>
           </div>
-        </div>
-        <DialogFooter>
-          <DialogClose asChild>
-            <Button type="button" variant="outline" ref={admInputDialogCloseRef}>Cancel</Button>
-          </DialogClose>
-          <Button type="button" onClick={handleAdmSearch}>Search</Button>
-        </DialogFooter>
-      </DialogContent>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setIsAdmInputDialogOpen(false)}>Cancel</Button>
+            <Button type="button" onClick={handleAdmSearch}>Search</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-      <Dialog> {/* This Dialog is for showing results */}
-        <DialogTrigger asChild>
-          <Button ref={showResultsDialogTriggerRef} className="hidden">Show Results</Button>
-        </DialogTrigger>
+      {/* Results Dialog */}
+      <Dialog open={isResultsDialogOpen} onOpenChange={setIsResultsDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Learner Details</DialogTitle>
@@ -290,12 +283,10 @@ export default function LiveAttendancePage() {
             <p className="py-4">No learner details to display.</p>
           )}
           <DialogFooter>
-            <DialogClose asChild>
-              <Button type="button">Close</Button>
-            </DialogClose>
+            <Button type="button" onClick={() => setIsResultsDialogOpen(false)}>Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </Dialog>
+    </>
   );
 }
