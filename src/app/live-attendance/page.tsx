@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { AttendanceCard } from '@/components/live-attendance/attendance-card';
 import { Camera, Users, RefreshCw, Search } from 'lucide-react';
@@ -22,14 +22,15 @@ import {
 import { Input } from '@/components/ui/input';
 import Image from 'next/image';
 import { Label } from '@/components/ui/label';
+import { format } from 'date-fns';
 
 interface LiveEntry {
   id: string;
   name: string;
-  adm: string; 
+  adm: string;
   course: string;
   imageUrl: string;
-  timestamp: string;
+  timestamp: string; // Store as HH:mm:ss string
   imageHint: string;
 }
 
@@ -38,21 +39,25 @@ const generateInitialEntries = (count: number): LiveEntry[] => {
   const baseNames = ["John Doe", "Jane Smith", "Alex Green", "Maria Blue", "Sam Brown", "Carlos Ray", "Lisa Wong", "Ken Adams", "Sara Lee", "Omar Hassan", "Nina Patel", "Leo Geller"];
   const baseHints = ["man smiling", "woman glasses", "person nature", "person city", "person serious", "man sunglasses", "woman outdoor", "man indoor", "woman happy", "man thinking", "woman studio", "man casual"];
   const baseCourses = ["Computer Science", "Electrical Engineering", "Mechanical Engineering", "Business Administration", "Fine Arts", "Civil Engineering", "Psychology", "Graphic Design", "Nursing", "Architecture", "Literature", "Physics"];
-  
+  const userTypes = ['S', 'T', 'N', 'V'];
+  // Use a fixed date far in the past for base time to ensure consistent sorting if needed, and add offsets.
+  const fixedBaseTime = new Date('2023-01-01T00:00:00Z').getTime();
+
   for (let i = 0; i < count; i++) {
-    const userTypes = ['S', 'T', 'N', 'V'];
-    const randomType = userTypes[Math.floor(Math.random() * userTypes.length)];
+    const userType = userTypes[i % userTypes.length]; // Deterministic type
+    const entryDate = new Date(fixedBaseTime + (count - 1 - i) * 15000); // Deterministic, newest first in loop
+
     entries.push({
       id: `initial-${i + 1}`,
-      name: `${baseNames[i % baseNames.length]}${i >= baseNames.length ? ' ' + (i+1) : ''}`,
-      adm: `${randomType}${1000 + i}`,
+      name: `${baseNames[i % baseNames.length]}${i >= baseNames.length ? ' ' + (i + 1) : ''}`,
+      adm: `${userType}${1000 + i}`,
       course: baseCourses[i % baseCourses.length],
       imageUrl: `https://placehold.co/200x160.png?id=initial${i}`,
-      timestamp: new Date(Date.now() - (count - i) * 15000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+      timestamp: format(entryDate, 'HH:mm:ss'), // Fixed format
       imageHint: baseHints[i % baseHints.length],
     });
   }
-  return entries;
+  return entries; // Already newest first due to loop logic
 };
 
 const initialEntriesData: LiveEntry[] = generateInitialEntries(12);
@@ -68,7 +73,7 @@ export default function LiveAttendancePage() {
   const admInputDialogCloseRef = useRef<HTMLButtonElement>(null);
 
   const getCameraPermission = async () => {
-    setHasCameraPermission(null); // Reset status while attempting
+    setHasCameraPermission(null);
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       console.error('MediaDevices API not supported.');
       setHasCameraPermission(false);
@@ -103,43 +108,36 @@ export default function LiveAttendancePage() {
   useEffect(() => {
     getCameraPermission();
 
+    const interval = setInterval(() => {
+      const names = ["Michael Brown", "Emily White", "David Green", "Sarah Black", "Chris Blue"];
+      const hints = ["man glasses", "woman nature", "man city", "woman smiling", "man serious"];
+      const courses = ["Journalism", "Marketing", "Software Dev", "Data Science", "UX Design"];
+      
+      const randomNameIndex = Math.floor(Math.random() * names.length);
+      const userTypes = ['S', 'T', 'N', 'V'];
+      const randomTypeIndex = Math.floor(Math.random() * userTypes.length);
+      const randomAdmSuffix = Math.floor(1000 + Math.random() * 9000);
+      
+      const newEntry: LiveEntry = {
+        id: Math.random().toString(36).substring(7),
+        name: names[randomNameIndex],
+        adm: `${userTypes[randomTypeIndex]}${randomAdmSuffix}`,
+        course: courses[randomNameIndex % courses.length], // Use same index for consistency or another random
+        imageUrl: `https://placehold.co/200x160.png?id=${Math.random()}`,
+        timestamp: format(new Date(), 'HH:mm:ss'), // Fixed format for new entries
+        imageHint: hints[randomNameIndex],
+      };
+      setLiveEntries(prevEntries => [newEntry, ...prevEntries].slice(0, 12));
+    }, 5000);
+
     return () => {
+      clearInterval(interval);
       if (videoRef.current && videoRef.current.srcObject) {
         const stream = videoRef.current.srcObject as MediaStream;
         stream.getTracks().forEach(track => track.stop());
       }
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Toast is stable, getCameraPermission is memoized by being outside or use useCallback if defined inside
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const names = ["Michael Brown", "Emily White", "David Green", "Sarah Black", "Chris Blue"];
-      const hints = ["man glasses", "woman nature", "man city", "woman smiling", "man serious"];
-      const courses = ["Journalism", "Marketing", "Software Dev", "Data Science", "UX Design"];
-      
-      const randomName = names[Math.floor(Math.random() * names.length)];
-      const randomHint = hints[Math.floor(Math.random() * hints.length)];
-      const randomCourse = courses[Math.floor(Math.random() * courses.length)];
-      const userTypes = ['S', 'T', 'N', 'V'];
-      const randomType = userTypes[Math.floor(Math.random() * userTypes.length)];
-      const randomAdm = `${randomType}${Math.floor(1000 + Math.random() * 9000)}`;
-      
-      const newEntry: LiveEntry = {
-        id: Math.random().toString(36).substring(7),
-        name: randomName,
-        adm: randomAdm,
-        course: randomCourse,
-        imageUrl: `https://placehold.co/200x160.png?id=${Math.random()}`,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-        imageHint: randomHint,
-      };
-      setLiveEntries(prevEntries => [newEntry, ...prevEntries].slice(0, 12)); 
-    }, 5000); 
-
-    setLiveEntries(prev => prev.map((e, index, arr) => ({...e, timestamp: new Date(Date.now() - (arr.length - 1 - index) * 5000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) })));
-
-    return () => clearInterval(interval);
   }, []);
 
   const handleAdmSearch = () => {
@@ -147,16 +145,21 @@ export default function LiveAttendancePage() {
       toast({ variant: 'destructive', title: 'Invalid Input', description: 'Please enter an ADM number.' });
       return;
     }
-    const learner = initialEntriesData.find(entry => entry.adm.toLowerCase() === admSearch.toLowerCase());
+    // Search in current liveEntries as well, or a more comprehensive list if available
+    const learner = [...initialEntriesData, ...liveEntries].find(entry => entry.adm.toLowerCase() === admSearch.toLowerCase());
     if (learner) {
       setFoundLearner(learner);
-      showResultsDialogTriggerRef.current?.click();
+      if (showResultsDialogTriggerRef.current) {
+         showResultsDialogTriggerRef.current.click();
+      }
     } else {
       setFoundLearner(null);
       toast({ variant: 'default', title: 'Not Found', description: `No learner found with ADM: ${admSearch}` });
     }
-    admInputDialogCloseRef.current?.click(); // Close input dialog
-    setAdmSearch(''); // Reset search input
+    if (admInputDialogCloseRef.current) {
+      admInputDialogCloseRef.current.click();
+    }
+    setAdmSearch('');
   };
 
   return (
@@ -164,7 +167,6 @@ export default function LiveAttendancePage() {
       <div className="flex flex-col h-full gap-6">
         <h1 className="text-3xl font-bold tracking-tight">Live Attendance Monitoring</h1>
         <div className="grid flex-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {/* Camera Feed Card */}
           <Card className="md:col-span-1 lg:col-span-1 lg:row-span-2 flex flex-col">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -192,8 +194,8 @@ export default function LiveAttendancePage() {
                   <RefreshCw className="mr-2 h-4 w-4" /> Retry Camera
                 </Button>
                 <DialogTrigger asChild>
-                  <Button 
-                    variant={hasCameraPermission === false ? "destructive" : "default"} 
+                  <Button
+                    variant={hasCameraPermission === false ? "destructive" : "default"}
                     className="w-full"
                   >
                     <Search className="mr-2 h-4 w-4" />
@@ -204,7 +206,6 @@ export default function LiveAttendancePage() {
             </CardContent>
           </Card>
 
-          {/* Recent Activity Card */}
           <Card className="md:col-span-1 lg:col-span-3 lg:row-span-2 flex flex-col">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -213,8 +214,8 @@ export default function LiveAttendancePage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="flex-1 p-0">
-              <ScrollArea className="h-full p-4"> 
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-2 gap-4"> {/* Adjusted grid for fewer columns on larger screens */}
+              <ScrollArea className="h-full p-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
                   {liveEntries.map((entry) => (
                     <AttendanceCard
                       key={entry.id}
@@ -238,7 +239,6 @@ export default function LiveAttendancePage() {
         </div>
       </div>
 
-      {/* ADM Input Dialog Content */}
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Find Learner by ADM</DialogTitle>
@@ -267,8 +267,7 @@ export default function LiveAttendancePage() {
           <Button type="button" onClick={handleAdmSearch}>Search</Button>
         </DialogFooter>
       </DialogContent>
-      
-      {/* Hidden Dialog Trigger for Learner Details */}
+
       <Dialog> {/* This Dialog is for showing results */}
         <DialogTrigger asChild>
           <Button ref={showResultsDialogTriggerRef} className="hidden">Show Results</Button>

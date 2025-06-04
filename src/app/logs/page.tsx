@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useMemo } from 'react';
@@ -35,6 +36,8 @@ interface LogEntry {
   gate: string;
 }
 
+const fixedBaseDateForAdditionalLogs = new Date('2023-10-28T00:00:00Z').getTime();
+
 const mockLogs: LogEntry[] = [
   { id: '1', userId: 'S1001', name: 'Alice Smith', category: 'Student', timestamp: new Date('2023-10-26T08:00:00'), type: 'Entry', gate: 'Main Gate' },
   { id: '2', userId: 'T2002', name: 'Bob Johnson', category: 'Teaching Staff', timestamp: new Date('2023-10-26T08:05:00'), type: 'Entry', gate: 'Main Gate' },
@@ -43,16 +46,18 @@ const mockLogs: LogEntry[] = [
   { id: '5', userId: 'V4004', name: 'David Brown', category: 'Visitor', timestamp: new Date('2023-10-26T10:15:00'), type: 'Entry', gate: 'Visitor Gate' },
   { id: '6', userId: 'S1002', name: 'Eve Davis', category: 'Student', timestamp: new Date('2023-10-27T08:10:00'), type: 'Entry', gate: 'Main Gate' },
   { id: '7', userId: 'T2002', name: 'Bob Johnson', category: 'Teaching Staff', timestamp: new Date('2023-10-27T16:00:00'), type: 'Exit', gate: 'Main Gate' },
-  // Add more logs to demonstrate scrolling
-  ...Array.from({ length: 20 }, (_, i) => ({
-    id: `L${100 + i}`,
-    userId: `U${2000 + i}`,
-    name: `User ${String.fromCharCode(65 + (i % 26))}${String.fromCharCode(97 + (i % 26))}erson`,
-    category: (['Student', 'Teaching Staff', 'Non-Teaching Staff', 'Visitor'] as LogEntry['category'][])[i % 4],
-    timestamp: new Date(Date.now() - Math.random() * 1000 * 60 * 60 * 24 * 5), // Random time in last 5 days
-    type: (['Entry', 'Exit'] as LogEntry['type'][])[i % 2],
-    gate: `Gate ${ (i % 3) + 1}`,
-  })),
+  ...Array.from({ length: 20 }, (_, i) => {
+    const minutesOffset = i * 30 + (i % 5) * 7; // Deterministic offset in minutes
+    return {
+      id: `L${100 + i}`,
+      userId: `U${2000 + i}`,
+      name: `User ${String.fromCharCode(65 + (i % 26))}${String.fromCharCode(97 + (i % 26))}son${i}`,
+      category: (['Student', 'Teaching Staff', 'Non-Teaching Staff', 'Visitor'] as LogEntry['category'][])[i % 4],
+      timestamp: new Date(fixedBaseDateForAdditionalLogs - minutesOffset * 60 * 1000), // Deterministic timestamp
+      type: (['Entry', 'Exit'] as LogEntry['type'][])[i % 2],
+      gate: `Gate ${ (i % 3) + 1}`,
+    };
+  }),
 ];
 
 export default function LogsPage() {
@@ -77,7 +82,6 @@ export default function LogsPage() {
   }, [searchTerm, categoryFilter, dateRange]);
 
   const handleExport = () => {
-    // Basic CSV export logic (can be expanded)
     const headers = ['User ID', 'Name', 'Category', 'Timestamp', 'Type', 'Gate'];
     const csvContent =
       'data:text/csv;charset=utf-8,' +
@@ -89,7 +93,7 @@ export default function LogsPage() {
             log.userId,
             log.name,
             log.category,
-            log.timestamp.toISOString(),
+            format(log.timestamp, 'yyyy-MM-dd HH:mm:ss'), // Use fixed format for CSV export
             log.type,
             log.gate,
           ].join(',')
@@ -186,7 +190,7 @@ export default function LogsPage() {
                   <TableCell>{log.userId}</TableCell>
                   <TableCell>{log.name}</TableCell>
                   <TableCell>{log.category}</TableCell>
-                  <TableCell>{format(log.timestamp, 'Pp')}</TableCell>
+                  <TableCell>{format(log.timestamp, 'yyyy-MM-dd HH:mm:ss')}</TableCell>
                   <TableCell>
                     <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                       log.type === 'Entry' ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
