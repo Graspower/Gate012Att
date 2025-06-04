@@ -101,7 +101,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const [currentDateHeader, setCurrentDateHeader] = React.useState<string | null>(null);
 
   React.useEffect(() => {
-    setCurrentDateHeader(format(new Date(), 'EEE, d, MMM').toLowerCase());
+    setCurrentDateHeader(format(new Date(), 'EEE, d, MMM, yyyy'));
   }, []);
 
   return (
@@ -118,8 +118,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             {/* Right section: Date display and placeholder for user profile/actions */}
             <div className="flex items-center">
               {currentDateHeader && (
+                <div className="bg-white p-2 px-3 rounded-lg">
+
                 <div className="text-emerald-600 text-xl font-bold tracking-tight">
                   {currentDateHeader}
+                </div>
+
                 </div>
               )}
               {/* User profile / actions can go here in the future, e.g., <UserButton /> */}
