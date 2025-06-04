@@ -23,18 +23,28 @@ import { Label } from '@/components/ui/label';
 import { format } from 'date-fns';
 import { FlipUnit } from '@/components/live-attendance/flip-unit';
 
+interface RawLiveEntry {
+  id: string;
+  name: string;
+  adm: string;
+  course: string;
+  imageUrl: string;
+  timestamp: number; // Milliseconds since epoch
+  imageHint: string;
+}
+
 interface LiveEntry {
   id: string;
   name: string;
   adm: string;
   course: string;
   imageUrl: string;
-  timestamp: string;
+  timestamp: string; // Formatted time string
   imageHint: string;
 }
 
-const generateInitialEntries = (count: number): LiveEntry[] => {
-  const entries: LiveEntry[] = [];
+const generateInitialRawEntries = (count: number): RawLiveEntry[] => {
+  const entries: RawLiveEntry[] = [];
   const baseNames = ["John Doe", "Jane Smith", "Alex Green", "Maria Blue", "Sam Brown", "Carlos Ray", "Lisa Wong", "Ken Adams", "Sara Lee", "Omar Hassan", "Nina Patel", "Leo Geller"];
   const baseHints = ["man smiling", "woman glasses", "person nature", "person city", "person serious", "man sunglasses", "woman outdoor", "man indoor", "woman happy", "man thinking", "woman studio", "man casual"];
   const baseCourses = ["Computer Science", "Electrical Engineering", "Mechanical Engineering", "Business Administration", "Fine Arts", "Civil Engineering", "Psychology", "Graphic Design", "Nursing", "Architecture", "Literature", "Physics"];
@@ -42,26 +52,25 @@ const generateInitialEntries = (count: number): LiveEntry[] => {
   const fixedBaseTime = new Date('2023-01-01T00:00:00Z').getTime();
 
   for (let i = 0; i < count; i++) {
-    const userType = userTypes[i % userTypes.length];
     const entryDate = new Date(fixedBaseTime + (count - 1 - i) * 15000); 
 
     entries.push({
       id: `initial-${i + 1}`,
       name: `${baseNames[i % baseNames.length]}${i >= baseNames.length ? ' ' + (i + 1) : ''}`,
-      adm: `${userType}${1000 + i}`, 
+      adm: `${userTypes[i % userTypes.length]}${1000 + i}`, 
       course: baseCourses[i % baseCourses.length],
       imageUrl: `https://placehold.co/200x160.png?id=initial${i}`, 
-      timestamp: format(entryDate, 'HH:mm:ss'),
+      timestamp: entryDate.getTime(), // Store as number
       imageHint: baseHints[i % baseHints.length],
     });
   }
   return entries;
 };
 
-const initialEntriesData: LiveEntry[] = generateInitialEntries(12);
+const initialRawEntriesData: RawLiveEntry[] = generateInitialRawEntries(12);
 
 export default function LiveAttendancePage() {
-  const [liveEntries, setLiveEntries] = useState<LiveEntry[]>(initialEntriesData);
+  const [liveEntries, setLiveEntries] = useState<LiveEntry[]>([]);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const { toast } = useToast();
@@ -77,7 +86,7 @@ export default function LiveAttendancePage() {
   useEffect(() => {
     const timerId = setInterval(() => {
       const now = new Date();
-      setPreviousTimeClock(currentTimeClock);
+      setPreviousTimeClock(currentTimeClock); // Capture current before updating
       setCurrentTimeClock({
         hours: now.getHours().toString().padStart(2, '0'),
         minutes: now.getMinutes().toString().padStart(2, '0'),
@@ -85,6 +94,7 @@ export default function LiveAttendancePage() {
       });
     }, 1000);
     
+    // Set initial clock state
     const now = new Date();
     const initialTime = {
       hours: now.getHours().toString().padStart(2, '0'),
@@ -92,10 +102,10 @@ export default function LiveAttendancePage() {
       seconds: now.getSeconds().toString().padStart(2, '0'),
     };
     setCurrentTimeClock(initialTime);
-    setPreviousTimeClock(initialTime);
+    setPreviousTimeClock(initialTime); // Initialize previous to current to avoid initial flip
 
     return () => clearInterval(timerId);
-  }, [currentTimeClock]);
+  }, [currentTimeClock]); // Rerun effect if currentTimeClock itself changes (though it shouldn't be set from outside)
 
 
   const getCameraPermission = async () => {
@@ -134,6 +144,13 @@ export default function LiveAttendancePage() {
   useEffect(() => {
     getCameraPermission();
 
+    // Format initial entries on client side
+    const clientFormattedInitialEntries: LiveEntry[] = initialRawEntriesData.map(rawEntry => ({
+      ...rawEntry,
+      timestamp: format(new Date(rawEntry.timestamp), 'HH:mm:ss'),
+    }));
+    setLiveEntries(clientFormattedInitialEntries);
+
     const interval = setInterval(() => {
       const names = ["Michael Brown", "Emily White", "David Green", "Sarah Black", "Chris Blue"];
       const hints = ["man glasses", "woman nature", "man city", "woman smiling", "man serious"];
@@ -171,7 +188,8 @@ export default function LiveAttendancePage() {
       toast({ variant: 'destructive', title: 'Invalid Input', description: 'Please enter an ADM number.' });
       return;
     }
-    const learner = [...initialEntriesData, ...liveEntries].find(entry => entry.adm.toLowerCase() === admSearch.toLowerCase());
+    // Search only within the client-side liveEntries which are already formatted
+    const learner = liveEntries.find(entry => entry.adm.toLowerCase() === admSearch.toLowerCase());
 
     setIsAdmInputDialogOpen(false);
 
@@ -254,13 +272,13 @@ export default function LiveAttendancePage() {
                         name={entry.name}
                         adm={entry.adm}
                         course={entry.course}
-                        timestamp={entry.timestamp}
+                        timestamp={entry.timestamp} // Already a string
                         imageHint={entry.imageHint}
                       />
                     ))}
                     {liveEntries.length === 0 && (
                       <p className="text-sm text-muted-foreground text-center py-8 col-span-full">
-                        No recent activity.
+                        Initializing activity feed...
                       </p>
                     )}
                   </div>
@@ -326,3 +344,4 @@ export default function LiveAttendancePage() {
     </>
   );
 }
+
