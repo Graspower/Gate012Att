@@ -84,29 +84,36 @@ export default function LiveAttendancePage() {
   const [previousTimeClock, setPreviousTimeClock] = useState({ hours: '00', minutes: '00', seconds: '00' });
 
   useEffect(() => {
+    // Set initial clock state immediately on mount, ONCE.
+    const now = new Date();
+    const initialHours = now.getHours().toString().padStart(2, '0');
+    const initialMinutes = now.getMinutes().toString().padStart(2, '0');
+    const initialSeconds = now.getSeconds().toString().padStart(2, '0');
+
+    const initialTimeObject = {
+      hours: initialHours,
+      minutes: initialMinutes,
+      seconds: initialSeconds,
+    };
+    setCurrentTimeClock(initialTimeObject);
+    setPreviousTimeClock(initialTimeObject); // Initialize previous to current to avoid initial flip
+
     const timerId = setInterval(() => {
-      const now = new Date();
-      setPreviousTimeClock(currentTimeClock); // Capture current before updating
-      setCurrentTimeClock({
-        hours: now.getHours().toString().padStart(2, '0'),
-        minutes: now.getMinutes().toString().padStart(2, '0'),
-        seconds: now.getSeconds().toString().padStart(2, '0'),
+      // Use functional update for setCurrentTimeClock to get the correct previous value of currentTimeClock
+      setCurrentTimeClock(prevCurrentTime => {
+        setPreviousTimeClock(prevCurrentTime); // Set previousTimeClock based on the state before this update
+
+        const newNow = new Date();
+        return { // Return the new currentTimeClock value
+          hours: newNow.getHours().toString().padStart(2, '0'),
+          minutes: newNow.getMinutes().toString().padStart(2, '0'),
+          seconds: newNow.getSeconds().toString().padStart(2, '0'),
+        };
       });
     }, 1000);
-    
-    // Set initial clock state
-    const now = new Date();
-    const initialTime = {
-      hours: now.getHours().toString().padStart(2, '0'),
-      minutes: now.getMinutes().toString().padStart(2, '0'),
-      seconds: now.getSeconds().toString().padStart(2, '0'),
-    };
-    setCurrentTimeClock(initialTime);
-    setPreviousTimeClock(initialTime); // Initialize previous to current to avoid initial flip
 
     return () => clearInterval(timerId);
-  }, [currentTimeClock]); // Rerun effect if currentTimeClock itself changes (though it shouldn't be set from outside)
-
+  }, []); // Empty dependency array, so this effect runs only on mount and unmount
 
   const getCameraPermission = async () => {
     setHasCameraPermission(null); 
@@ -344,4 +351,3 @@ export default function LiveAttendancePage() {
     </>
   );
 }
-
