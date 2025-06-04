@@ -63,10 +63,11 @@ body {
     --background: 0 0% 10%; /* #1A1A1A */
     --foreground: 0 0% 98%;
 
-    --card: 0 0% 10%; /* #1A1A1A */
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 10%; /* #1A1A1A */
-    --popover-foreground: 0 0% 98%;
+    --card: 0 0% 96.1%; /* Light gray #F5F5F5 for cards in dark mode */
+    --card-foreground: 240 10% 3.9%; /* Dark text for light cards in dark mode */
+    
+    --popover: 0 0% 10%; /* #1A1A1A - Keeping popovers dark */
+    --popover-foreground: 0 0% 98%; /* Light text for dark popovers */
 
     --primary: 231 48% 55%; /* Adjusted Indigo for dark mode */
     --primary-foreground: 0 0% 98%;
