@@ -118,3 +118,103 @@ body {
   }
 }
 
+@layer utilities {
+  .perspective {
+    perspective: 1000px;
+  }
+
+  .flip-card {
+    @apply relative inline-flex flex-col shadow-md rounded-md bg-card text-card-foreground font-mono overflow-hidden;
+    width: 6rem; /* Adjust as needed for two large digits */
+    height: 7rem; /* Adjust as needed */
+    font-size: 3.5rem; /* Larger digits */
+    line-height: 1;
+    transform-style: preserve-3d;
+  }
+
+  .flip-card-static-top,
+  .flip-card-static-bottom,
+  .flip-card-flap {
+    @apply absolute left-0 w-full h-1/2 overflow-hidden flex items-center justify-center;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+  
+  .flip-card-static-top span,
+  .flip-card-static-bottom span,
+  .flip-card-flap span {
+     @apply block; /* Ensure span takes full width for centering */
+  }
+
+  .flip-card-static-top {
+    @apply top-0 items-end pb-px; /* Align text to bottom of this half */
+    border-bottom: 1px solid hsl(var(--border) / 0.5);
+  }
+  .flip-card-static-top span {
+    transform: translateY(50%);
+  }
+
+  .flip-card-static-bottom {
+    @apply bottom-0 items-start pt-px; /* Align text to top of this half */
+  }
+  .flip-card-static-bottom span {
+    transform: translateY(-50%);
+  }
+
+  .flip-card-flap {
+    @apply bg-card; /* Match card background */
+    z-index: 1;
+  }
+  
+  .flip-card-top-flap {
+    @apply top-0 items-end pb-px;
+    transform-origin: bottom;
+    border-bottom: 1px solid hsl(var(--border) / 0.5);
+    z-index: 20; /* Ensure it's on top during flip */
+  }
+  .flip-card-top-flap span {
+    transform: translateY(50%);
+  }
+
+  .flip-card-bottom-flap {
+    @apply bottom-0 items-start pt-px;
+    transform-origin: top;
+    transform: rotateX(90deg); /* Start flipped, invisible */
+    z-index: 10;
+  }
+  .flip-card-bottom-flap span {
+    transform: translateY(-50%);
+  }
+
+  .animate-flip-top {
+    animation: flip-top 0.6s ease-in-out forwards;
+  }
+
+  .animate-flip-bottom {
+    animation: flip-bottom 0.6s ease-in-out 0.6s forwards; 
+    /* Start this animation when the top one finishes if they were two separate elements forming one face.
+       With current structure, they are separate faces, so the delay might be half the total duration.
+       Or, for simultaneous reveal, remove delay and adjust keyframes.
+       Let's try a slight delay to ensure top flap clears.
+    */
+     animation-delay: 0.28s; /* Slightly less than half of 0.6s */
+  }
+
+  @keyframes flip-top {
+    0% {
+      transform: rotateX(0deg);
+    }
+    100% {
+      transform: rotateX(-90deg);
+    }
+  }
+
+  @keyframes flip-bottom {
+    0% {
+      transform: rotateX(90deg); /* Start from underneath */
+    }
+    100% {
+      transform: rotateX(0deg);
+    }
+  }
+}

@@ -21,6 +21,7 @@ import { Input } from '@/components/ui/input';
 import Image from 'next/image';
 import { Label } from '@/components/ui/label';
 import { format } from 'date-fns';
+import { FlipUnit } from '@/components/live-attendance/flip-unit';
 
 interface LiveEntry {
   id: string;
@@ -42,14 +43,14 @@ const generateInitialEntries = (count: number): LiveEntry[] => {
 
   for (let i = 0; i < count; i++) {
     const userType = userTypes[i % userTypes.length];
-    const entryDate = new Date(fixedBaseTime + (count - 1 - i) * 15000); // Deterministic timestamp
+    const entryDate = new Date(fixedBaseTime + (count - 1 - i) * 15000); 
 
     entries.push({
       id: `initial-${i + 1}`,
       name: `${baseNames[i % baseNames.length]}${i >= baseNames.length ? ' ' + (i + 1) : ''}`,
-      adm: `${userType}${1000 + i}`, // Deterministic adm
+      adm: `${userType}${1000 + i}`, 
       course: baseCourses[i % baseCourses.length],
-      imageUrl: `https://placehold.co/200x160.png?id=initial${i}`, // Deterministic URL
+      imageUrl: `https://placehold.co/200x160.png?id=initial${i}`, 
       timestamp: format(entryDate, 'HH:mm:ss'),
       imageHint: baseHints[i % baseHints.length],
     });
@@ -71,29 +72,34 @@ export default function LiveAttendancePage() {
   const [isResultsDialogOpen, setIsResultsDialogOpen] = useState(false);
 
   const [currentTimeClock, setCurrentTimeClock] = useState({ hours: '00', minutes: '00', seconds: '00' });
+  const [previousTimeClock, setPreviousTimeClock] = useState({ hours: '00', minutes: '00', seconds: '00' });
 
   useEffect(() => {
     const timerId = setInterval(() => {
       const now = new Date();
+      setPreviousTimeClock(currentTimeClock);
       setCurrentTimeClock({
         hours: now.getHours().toString().padStart(2, '0'),
         minutes: now.getMinutes().toString().padStart(2, '0'),
         seconds: now.getSeconds().toString().padStart(2, '0'),
       });
     }, 1000);
-    // Set initial time immediately
+    
     const now = new Date();
-    setCurrentTimeClock({
+    const initialTime = {
       hours: now.getHours().toString().padStart(2, '0'),
       minutes: now.getMinutes().toString().padStart(2, '0'),
       seconds: now.getSeconds().toString().padStart(2, '0'),
-    });
+    };
+    setCurrentTimeClock(initialTime);
+    setPreviousTimeClock(initialTime);
+
     return () => clearInterval(timerId);
-  }, []);
+  }, [currentTimeClock]);
 
 
   const getCameraPermission = async () => {
-    setHasCameraPermission(null);
+    setHasCameraPermission(null); 
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       console.error('MediaDevices API not supported.');
       setHasCameraPermission(false);
@@ -192,8 +198,9 @@ export default function LiveAttendancePage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-4 p-4">
-              <div className="w-full"> {/* Wrapper for buttons and video */}
-                <div className="w-full space-y-2 mb-4"> {/* Buttons moved here, mb-4 for spacing */}
+              <div className="w-full">
+                <video ref={videoRef} className="w-full aspect-video rounded-md bg-muted" autoPlay muted playsInline />
+                <div className="w-full space-y-2 mt-4">
                   <Button onClick={getCameraPermission} variant="outline" className="w-full">
                     <RefreshCw className="mr-2 h-4 w-4" /> Retry Camera
                   </Button>
@@ -206,7 +213,6 @@ export default function LiveAttendancePage() {
                     {hasCameraPermission === false ? "Camera Offline: Find by ADM" : "Find by ADM"}
                   </Button>
                 </div>
-                <video ref={videoRef} className="w-full aspect-video rounded-md bg-muted" autoPlay muted playsInline />
                 {hasCameraPermission === false && (
                   <Alert variant="destructive" className="mt-4 w-full">
                     <AlertTitle>Camera Access Denied</AlertTitle>
@@ -223,18 +229,12 @@ export default function LiveAttendancePage() {
           </Card>
           
           <div className="md:col-span-1 lg:col-span-3 flex flex-col gap-4">
-            <div className="flex justify-center items-center gap-2 self-center">
-              <div className="bg-card text-card-foreground p-3 rounded-lg shadow-md">
-                <span className="text-2xl font-mono">{currentTimeClock.hours}</span>
-              </div>
-              <span className="text-2xl font-mono text-muted-foreground">:</span>
-              <div className="bg-card text-card-foreground p-3 rounded-lg shadow-md">
-                <span className="text-2xl font-mono">{currentTimeClock.minutes}</span>
-              </div>
-              <span className="text-2xl font-mono text-muted-foreground">:</span>
-              <div className="bg-card text-card-foreground p-3 rounded-lg shadow-md">
-                <span className="text-2xl font-mono">{currentTimeClock.seconds}</span>
-              </div>
+            <div className="flex justify-center items-center gap-2 self-center perspective">
+              <FlipUnit currentValue={currentTimeClock.hours} previousValue={previousTimeClock.hours} />
+              <span className="text-4xl font-mono text-muted-foreground">:</span>
+              <FlipUnit currentValue={currentTimeClock.minutes} previousValue={previousTimeClock.minutes} />
+              <span className="text-4xl font-mono text-muted-foreground">:</span>
+              <FlipUnit currentValue={currentTimeClock.seconds} previousValue={previousTimeClock.seconds} />
             </div>
 
             <Card className="flex flex-col flex-1">
