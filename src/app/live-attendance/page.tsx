@@ -28,7 +28,7 @@ interface LiveEntry {
   adm: string;
   course: string;
   imageUrl: string;
-  timestamp: string; 
+  timestamp: string;
   imageHint: string;
 }
 
@@ -41,7 +41,7 @@ const generateInitialEntries = (count: number): LiveEntry[] => {
   const fixedBaseTime = new Date('2023-01-01T00:00:00Z').getTime();
 
   for (let i = 0; i < count; i++) {
-    const userType = userTypes[i % userTypes.length]; 
+    const userType = userTypes[i % userTypes.length];
     const entryDate = new Date(fixedBaseTime + (count - 1 - i) * 15000); // Deterministic timestamp
 
     entries.push({
@@ -50,11 +50,11 @@ const generateInitialEntries = (count: number): LiveEntry[] => {
       adm: `${userType}${1000 + i}`, // Deterministic adm
       course: baseCourses[i % baseCourses.length],
       imageUrl: `https://placehold.co/200x160.png?id=initial${i}`, // Deterministic URL
-      timestamp: format(entryDate, 'HH:mm:ss'), 
+      timestamp: format(entryDate, 'HH:mm:ss'),
       imageHint: baseHints[i % baseHints.length],
     });
   }
-  return entries; 
+  return entries;
 };
 
 const initialEntriesData: LiveEntry[] = generateInitialEntries(12);
@@ -70,8 +70,30 @@ export default function LiveAttendancePage() {
   const [isAdmInputDialogOpen, setIsAdmInputDialogOpen] = useState(false);
   const [isResultsDialogOpen, setIsResultsDialogOpen] = useState(false);
 
+  const [currentTimeClock, setCurrentTimeClock] = useState({ hours: '00', minutes: '00', seconds: '00' });
+
+  useEffect(() => {
+    const timerId = setInterval(() => {
+      const now = new Date();
+      setCurrentTimeClock({
+        hours: now.getHours().toString().padStart(2, '0'),
+        minutes: now.getMinutes().toString().padStart(2, '0'),
+        seconds: now.getSeconds().toString().padStart(2, '0'),
+      });
+    }, 1000);
+    // Set initial time immediately
+    const now = new Date();
+    setCurrentTimeClock({
+      hours: now.getHours().toString().padStart(2, '0'),
+      minutes: now.getMinutes().toString().padStart(2, '0'),
+      seconds: now.getSeconds().toString().padStart(2, '0'),
+    });
+    return () => clearInterval(timerId);
+  }, []);
+
+
   const getCameraPermission = async () => {
-    setHasCameraPermission(null); 
+    setHasCameraPermission(null);
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       console.error('MediaDevices API not supported.');
       setHasCameraPermission(false);
@@ -110,19 +132,19 @@ export default function LiveAttendancePage() {
       const names = ["Michael Brown", "Emily White", "David Green", "Sarah Black", "Chris Blue"];
       const hints = ["man glasses", "woman nature", "man city", "woman smiling", "man serious"];
       const courses = ["Journalism", "Marketing", "Software Dev", "Data Science", "UX Design"];
-      
+
       const randomNameIndex = Math.floor(Math.random() * names.length);
       const userTypes = ['S', 'T', 'N', 'V'];
       const randomTypeIndex = Math.floor(Math.random() * userTypes.length);
       const randomAdmSuffix = Math.floor(1000 + Math.random() * 9000);
-      
+
       const newEntry: LiveEntry = {
         id: Math.random().toString(36).substring(7),
         name: names[randomNameIndex],
         adm: `${userTypes[randomTypeIndex]}${randomAdmSuffix}`,
-        course: courses[randomNameIndex % courses.length], 
+        course: courses[randomNameIndex % courses.length],
         imageUrl: `https://placehold.co/200x160.png?id=${Math.random()}`,
-        timestamp: format(new Date(), 'HH:mm:ss'), 
+        timestamp: format(new Date(), 'HH:mm:ss'),
         imageHint: hints[randomNameIndex],
       };
       setLiveEntries(prevEntries => [newEntry, ...prevEntries].slice(0, 12));
@@ -135,7 +157,7 @@ export default function LiveAttendancePage() {
         stream.getTracks().forEach(track => track.stop());
       }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleAdmSearch = () => {
@@ -144,17 +166,17 @@ export default function LiveAttendancePage() {
       return;
     }
     const learner = [...initialEntriesData, ...liveEntries].find(entry => entry.adm.toLowerCase() === admSearch.toLowerCase());
-    
-    setIsAdmInputDialogOpen(false); 
+
+    setIsAdmInputDialogOpen(false);
 
     if (learner) {
       setFoundLearner(learner);
-      setIsResultsDialogOpen(true); 
+      setIsResultsDialogOpen(true);
     } else {
       setFoundLearner(null);
       toast({ variant: 'default', title: 'Not Found', description: `No learner found with ADM: ${admSearch}` });
     }
-    setAdmSearch(''); 
+    setAdmSearch('');
   };
 
   return (
@@ -162,7 +184,7 @@ export default function LiveAttendancePage() {
       <div className="flex flex-col h-full gap-6">
         <h1 className="text-3xl font-bold tracking-tight">Live Attendance Monitoring</h1>
         <div className="grid flex-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="md:col-span-1 lg:col-span-1 flex flex-col lg:max-w-md">
+          <Card className="md:col-span-1 lg:col-span-1 lg:max-w-md flex flex-col">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Camera className="h-6 w-6" />
@@ -170,20 +192,20 @@ export default function LiveAttendancePage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-4 p-4">
-              <div className="w-full space-y-2">
-                <Button onClick={getCameraPermission} variant="outline" className="w-full">
-                  <RefreshCw className="mr-2 h-4 w-4" /> Retry Camera
-                </Button>
-                <Button
-                  onClick={() => setIsAdmInputDialogOpen(true)}
-                  variant={hasCameraPermission === false ? "destructive" : "default"}
-                  className="w-full"
-                >
-                  <Search className="mr-2 h-4 w-4" />
-                  {hasCameraPermission === false ? "Camera Offline: Find by ADM" : "Find by ADM"}
-                </Button>
-              </div>
-              <div className="w-full">
+              <div className="w-full"> {/* Wrapper for buttons and video */}
+                <div className="w-full space-y-2 mb-4"> {/* Buttons moved here, mb-4 for spacing */}
+                  <Button onClick={getCameraPermission} variant="outline" className="w-full">
+                    <RefreshCw className="mr-2 h-4 w-4" /> Retry Camera
+                  </Button>
+                  <Button
+                    onClick={() => setIsAdmInputDialogOpen(true)}
+                    variant={hasCameraPermission === false ? "destructive" : "default"}
+                    className="w-full"
+                  >
+                    <Search className="mr-2 h-4 w-4" />
+                    {hasCameraPermission === false ? "Camera Offline: Find by ADM" : "Find by ADM"}
+                  </Button>
+                </div>
                 <video ref={videoRef} className="w-full aspect-video rounded-md bg-muted" autoPlay muted playsInline />
                 {hasCameraPermission === false && (
                   <Alert variant="destructive" className="mt-4 w-full">
@@ -199,37 +221,53 @@ export default function LiveAttendancePage() {
               </div>
             </CardContent>
           </Card>
+          
+          <div className="md:col-span-1 lg:col-span-3 flex flex-col gap-4">
+            <div className="flex justify-center items-center gap-2 self-center">
+              <div className="bg-card text-card-foreground p-3 rounded-lg shadow-md">
+                <span className="text-2xl font-mono">{currentTimeClock.hours}</span>
+              </div>
+              <span className="text-2xl font-mono text-muted-foreground">:</span>
+              <div className="bg-card text-card-foreground p-3 rounded-lg shadow-md">
+                <span className="text-2xl font-mono">{currentTimeClock.minutes}</span>
+              </div>
+              <span className="text-2xl font-mono text-muted-foreground">:</span>
+              <div className="bg-card text-card-foreground p-3 rounded-lg shadow-md">
+                <span className="text-2xl font-mono">{currentTimeClock.seconds}</span>
+              </div>
+            </div>
 
-          <Card className="md:col-span-1 lg:col-span-3 flex flex-col">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-6 w-6" />
-                Recent Activity
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex-1 p-0">
-              <ScrollArea className="h-full p-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {liveEntries.map((entry) => (
-                    <AttendanceCard
-                      key={entry.id}
-                      imageUrl={entry.imageUrl}
-                      name={entry.name}
-                      adm={entry.adm}
-                      course={entry.course}
-                      timestamp={entry.timestamp}
-                      imageHint={entry.imageHint}
-                    />
-                  ))}
-                  {liveEntries.length === 0 && (
-                    <p className="text-sm text-muted-foreground text-center py-8 col-span-full">
-                      No recent activity.
-                    </p>
-                  )}
-                </div>
-              </ScrollArea>
-            </CardContent>
-          </Card>
+            <Card className="flex flex-col flex-1">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-6 w-6" />
+                  Recent Activity
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex-1 p-0">
+                <ScrollArea className="h-full p-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {liveEntries.map((entry) => (
+                      <AttendanceCard
+                        key={entry.id}
+                        imageUrl={entry.imageUrl}
+                        name={entry.name}
+                        adm={entry.adm}
+                        course={entry.course}
+                        timestamp={entry.timestamp}
+                        imageHint={entry.imageHint}
+                      />
+                    ))}
+                    {liveEntries.length === 0 && (
+                      <p className="text-sm text-muted-foreground text-center py-8 col-span-full">
+                        No recent activity.
+                      </p>
+                    )}
+                  </div>
+                </ScrollArea>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
 
@@ -288,5 +326,3 @@ export default function LiveAttendancePage() {
     </>
   );
 }
-
-    
