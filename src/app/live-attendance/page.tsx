@@ -164,14 +164,27 @@ export default function LiveAttendancePage() {
       <div className="flex flex-col h-full gap-6">
         <h1 className="text-3xl font-bold tracking-tight">Live Attendance Monitoring</h1>
         <div className="grid flex-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="md:col-span-1 lg:col-span-1 lg:row-span-2 flex flex-col lg:max-w-md">
+          <Card className="md:col-span-1 lg:col-span-1 flex flex-col lg:max-w-md">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Camera className="h-6 w-6" />
                 Live Camera Feed
               </CardTitle>
             </CardHeader>
-            <CardContent className="flex-1 flex flex-col items-center justify-between p-4">
+            <CardContent className="flex flex-col gap-4 p-4">
+              <div className="w-full space-y-2">
+                <Button onClick={getCameraPermission} variant="outline" className="w-full">
+                  <RefreshCw className="mr-2 h-4 w-4" /> Retry Camera
+                </Button>
+                <Button
+                  onClick={() => setIsAdmInputDialogOpen(true)}
+                  variant={hasCameraPermission === false ? "destructive" : "default"}
+                  className="w-full"
+                >
+                  <Search className="mr-2 h-4 w-4" />
+                  {hasCameraPermission === false ? "Camera Offline: Find by ADM" : "Find by ADM"}
+                </Button>
+              </div>
               <div className="w-full">
                 <video ref={videoRef} className="w-full aspect-video rounded-md bg-black" autoPlay muted playsInline />
                 {hasCameraPermission === false && (
@@ -186,23 +199,10 @@ export default function LiveAttendancePage() {
                   <p className="text-sm text-muted-foreground mt-2">Initializing camera...</p>
                 )}
               </div>
-              <div className="mt-4 w-full space-y-2">
-                <Button onClick={getCameraPermission} variant="outline" className="w-full">
-                  <RefreshCw className="mr-2 h-4 w-4" /> Retry Camera
-                </Button>
-                <Button
-                  onClick={() => setIsAdmInputDialogOpen(true)}
-                  variant={hasCameraPermission === false ? "destructive" : "default"}
-                  className="w-full"
-                >
-                  <Search className="mr-2 h-4 w-4" />
-                  {hasCameraPermission === false ? "Camera Offline: Find by ADM" : "Find by ADM"}
-                </Button>
-              </div>
             </CardContent>
           </Card>
 
-          <Card className="md:col-span-1 lg:col-span-3 lg:row-span-2 flex flex-col">
+          <Card className="md:col-span-1 lg:col-span-3 flex flex-col">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Users className="h-6 w-6" />
