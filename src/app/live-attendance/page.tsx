@@ -52,14 +52,14 @@ const generateInitialRawEntries = (count: number): RawLiveEntry[] => {
   const fixedBaseTime = new Date('2023-01-01T00:00:00Z').getTime();
 
   for (let i = 0; i < count; i++) {
-    const entryDate = new Date(fixedBaseTime + (count - 1 - i) * 15000); 
+    const entryDate = new Date(fixedBaseTime + (count - 1 - i) * 15000);
 
     entries.push({
       id: `initial-${i + 1}`,
       name: `${baseNames[i % baseNames.length]}${i >= baseNames.length ? ' ' + (i + 1) : ''}`,
-      adm: `${userTypes[i % userTypes.length]}${1000 + i}`, 
+      adm: `${userTypes[i % userTypes.length]}${1000 + i}`,
       course: baseCourses[i % baseCourses.length],
-      imageUrl: `https://placehold.co/200x160.png?id=initial${i}`, 
+      imageUrl: `https://placehold.co/200x160.png?id=initial${i}`,
       timestamp: entryDate.getTime(), // Store as number
       imageHint: baseHints[i % baseHints.length],
     });
@@ -89,20 +89,20 @@ export default function LiveAttendancePage() {
     const initialHours = now.getHours().toString().padStart(2, '0');
     const initialMinutes = now.getMinutes().toString().padStart(2, '0');
     const initialSeconds = now.getSeconds().toString().padStart(2, '0');
-    
+
     const initialTimeObject = {
       hours: initialHours,
       minutes: initialMinutes,
       seconds: initialSeconds,
     };
     setCurrentTimeClock(initialTimeObject);
-    setPreviousTimeClock(initialTimeObject); 
+    setPreviousTimeClock(initialTimeObject);
 
     const timerId = setInterval(() => {
       setCurrentTimeClock(prevCurrentTime => {
-        setPreviousTimeClock(prevCurrentTime); 
+        setPreviousTimeClock(prevCurrentTime);
         const newNow = new Date();
-        return { 
+        return {
           hours: newNow.getHours().toString().padStart(2, '0'),
           minutes: newNow.getMinutes().toString().padStart(2, '0'),
           seconds: newNow.getSeconds().toString().padStart(2, '0'),
@@ -111,10 +111,10 @@ export default function LiveAttendancePage() {
     }, 1000);
 
     return () => clearInterval(timerId);
-  }, []); 
+  }, []);
 
   const getCameraPermission = async () => {
-    setHasCameraPermission(null); 
+    setHasCameraPermission(null);
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       console.error('MediaDevices API not supported.');
       setHasCameraPermission(false);
@@ -211,12 +211,14 @@ export default function LiveAttendancePage() {
       <div className="flex flex-col h-full gap-6">
         <div className="flex flex-col items-center gap-4 md:flex-row md:justify-between md:items-center">
           <h1 className="text-3xl font-bold tracking-tight">Live Attendance Monitoring</h1>
-          <div className="flex justify-center items-center gap-2 perspective">
-            <FlipUnit currentValue={currentTimeClock.hours} previousValue={previousTimeClock.hours} />
-            <span className="text-6xl font-mono text-emerald-600 leading-none">:</span>
-            <FlipUnit currentValue={currentTimeClock.minutes} previousValue={previousTimeClock.minutes} />
-            <span className="text-6xl font-mono text-emerald-600 leading-none">:</span>
-            <FlipUnit currentValue={currentTimeClock.seconds} previousValue={previousTimeClock.seconds} />
+          <div className="flex flex-col items-center">
+            <div className="flex justify-center items-center gap-2 perspective">
+              <FlipUnit currentValue={currentTimeClock.hours} previousValue={previousTimeClock.hours} />
+              <span className="text-6xl font-mono text-emerald-600 leading-none">:</span>
+              <FlipUnit currentValue={currentTimeClock.minutes} previousValue={previousTimeClock.minutes} />
+              <span className="text-6xl font-mono text-emerald-600 leading-none">:</span>
+              <FlipUnit currentValue={currentTimeClock.seconds} previousValue={previousTimeClock.seconds} />
+            </div>
           </div>
         </div>
         <div className="grid flex-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -257,7 +259,7 @@ export default function LiveAttendancePage() {
               </div>
             </CardContent>
           </Card>
-          
+
           <div className="md:col-span-1 lg:col-span-3 flex flex-col">
             <Card className="flex flex-col flex-1">
               <CardHeader>
@@ -276,7 +278,7 @@ export default function LiveAttendancePage() {
                         name={entry.name}
                         adm={entry.adm}
                         course={entry.course}
-                        timestamp={entry.timestamp} 
+                        timestamp={entry.timestamp}
                         imageHint={entry.imageHint}
                       />
                     ))}

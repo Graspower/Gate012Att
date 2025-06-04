@@ -84,9 +84,9 @@ function AppSidebar() {
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter className="p-4">
-        <Button 
-          variant="ghost" 
-          onClick={toggleSidebar} 
+        <Button
+          variant="ghost"
+          onClick={toggleSidebar}
           className="w-full justify-start gap-2 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
         >
           {open || isMobile ? <PanelLeftClose className="h-5 w-5" /> : <PanelLeftOpen className="h-5 w-5" />}
@@ -101,8 +101,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const [currentDateHeader, setCurrentDateHeader] = React.useState<string | null>(null);
 
   React.useEffect(() => {
-    // Set date only on client-side to avoid hydration mismatch
-    setCurrentDateHeader(format(new Date(), 'EEE, d, MMM'));
+    setCurrentDateHeader(format(new Date(), 'EEE, d, MMM').toUpperCase());
   }, []);
 
   return (
@@ -111,32 +110,21 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <AppSidebar />
         <SidebarInset className="flex-1 bg-background">
           <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-header-border bg-header px-6">
-            {/* Left section: mobile trigger and date for desktop */}
-            <div className="flex items-center gap-x-4">
+            {/* Left section: mobile trigger */}
+            <div className="flex items-center">
               <SidebarTrigger className="md:hidden" />
-              {currentDateHeader && (
-                <div 
-                  className="hidden md:block text-lg font-semibold" 
-                  style={{ color: 'hsl(var(--accent))' }}
-                >
-                  {currentDateHeader}
-                </div>
-              )}
             </div>
 
-            {/* Center section: date for mobile */}
-            {currentDateHeader && (
-                <div 
-                  className="md:hidden text-base font-semibold" 
-                  style={{ color: 'hsl(var(--accent))' }}
-                >
-                  {currentDateHeader}
-                </div>
-            )}
-
-            {/* Right section: placeholder for user profile/actions */}
+            {/* Right section: Date card and placeholder for user profile/actions */}
             <div className="flex items-center">
-              {/* User profile / actions can go here */}
+              {currentDateHeader && (
+                <div className="bg-white text-slate-900 p-2 px-3 rounded-lg shadow-md">
+                  <div className="text-xl font-bold tracking-tight">
+                    {currentDateHeader}
+                  </div>
+                </div>
+              )}
+              {/* User profile / actions can go here in the future, e.g., <UserButton /> */}
             </div>
           </header>
           <main className="flex-1 p-6">{children}</main>
