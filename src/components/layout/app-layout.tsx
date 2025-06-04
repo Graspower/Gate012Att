@@ -1,7 +1,7 @@
 
 "use client";
 
-import type React from 'react';
+import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
 
 interface NavItem {
   href: string;
@@ -97,14 +98,46 @@ function AppSidebar() {
 }
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
+  const [currentDateHeader, setCurrentDateHeader] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    // Set date only on client-side to avoid hydration mismatch
+    setCurrentDateHeader(format(new Date(), 'EEE, d, MMM'));
+  }, []);
+
   return (
     <SidebarProvider defaultOpen={true}>
       <div className="flex min-h-screen">
         <AppSidebar />
         <SidebarInset className="flex-1 bg-background">
-          <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-header-border bg-header px-6 text-header-foreground md:justify-end">
-             <SidebarTrigger className="md:hidden" />
-             {/* Future user profile / actions can go here */}
+          <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-header-border bg-header px-6">
+            {/* Left section: mobile trigger and date for desktop */}
+            <div className="flex items-center gap-x-4">
+              <SidebarTrigger className="md:hidden" />
+              {currentDateHeader && (
+                <div 
+                  className="hidden md:block text-lg font-semibold" 
+                  style={{ color: 'hsl(var(--accent))' }}
+                >
+                  {currentDateHeader}
+                </div>
+              )}
+            </div>
+
+            {/* Center section: date for mobile */}
+            {currentDateHeader && (
+                <div 
+                  className="md:hidden text-base font-semibold" 
+                  style={{ color: 'hsl(var(--accent))' }}
+                >
+                  {currentDateHeader}
+                </div>
+            )}
+
+            {/* Right section: placeholder for user profile/actions */}
+            <div className="flex items-center">
+              {/* User profile / actions can go here */}
+            </div>
           </header>
           <main className="flex-1 p-6">{children}</main>
         </SidebarInset>

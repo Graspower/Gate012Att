@@ -82,7 +82,6 @@ export default function LiveAttendancePage() {
 
   const [currentTimeClock, setCurrentTimeClock] = useState({ hours: '00', minutes: '00', seconds: '00' });
   const [previousTimeClock, setPreviousTimeClock] = useState({ hours: '00', minutes: '00', seconds: '00' });
-  const [currentDateDisplay, setCurrentDateDisplay] = useState('');
 
 
   useEffect(() => {
@@ -90,8 +89,7 @@ export default function LiveAttendancePage() {
     const initialHours = now.getHours().toString().padStart(2, '0');
     const initialMinutes = now.getMinutes().toString().padStart(2, '0');
     const initialSeconds = now.getSeconds().toString().padStart(2, '0');
-    const initialFormattedDate = format(now, 'EEE, d, MMM');
-
+    
     const initialTimeObject = {
       hours: initialHours,
       minutes: initialMinutes,
@@ -99,14 +97,11 @@ export default function LiveAttendancePage() {
     };
     setCurrentTimeClock(initialTimeObject);
     setPreviousTimeClock(initialTimeObject); 
-    setCurrentDateDisplay(initialFormattedDate);
 
     const timerId = setInterval(() => {
       setCurrentTimeClock(prevCurrentTime => {
         setPreviousTimeClock(prevCurrentTime); 
-
         const newNow = new Date();
-        setCurrentDateDisplay(format(newNow, 'EEE, d, MMM'));
         return { 
           hours: newNow.getHours().toString().padStart(2, '0'),
           minutes: newNow.getMinutes().toString().padStart(2, '0'),
@@ -214,17 +209,14 @@ export default function LiveAttendancePage() {
   return (
     <>
       <div className="flex flex-col h-full gap-6">
-        <div className="flex flex-col items-center gap-2 md:flex-row md:justify-between md:items-start">
-          <h1 className="text-3xl font-bold tracking-tight md:mt-1">Live Attendance Monitoring</h1>
-          <div className="flex flex-col items-center md:items-end">
-            <p className="text-emerald-600 text-[26px] font-semibold mb-1">{currentDateDisplay}</p>
-            <div className="flex justify-center items-center gap-2 perspective">
-              <FlipUnit currentValue={currentTimeClock.hours} previousValue={previousTimeClock.hours} />
-              <span className="text-6xl font-mono text-emerald-600 leading-none">:</span>
-              <FlipUnit currentValue={currentTimeClock.minutes} previousValue={previousTimeClock.minutes} />
-              <span className="text-6xl font-mono text-emerald-600 leading-none">:</span>
-              <FlipUnit currentValue={currentTimeClock.seconds} previousValue={previousTimeClock.seconds} />
-            </div>
+        <div className="flex flex-col items-center gap-4 md:flex-row md:justify-between md:items-center">
+          <h1 className="text-3xl font-bold tracking-tight">Live Attendance Monitoring</h1>
+          <div className="flex justify-center items-center gap-2 perspective">
+            <FlipUnit currentValue={currentTimeClock.hours} previousValue={previousTimeClock.hours} />
+            <span className="text-6xl font-mono text-emerald-600 leading-none">:</span>
+            <FlipUnit currentValue={currentTimeClock.minutes} previousValue={previousTimeClock.minutes} />
+            <span className="text-6xl font-mono text-emerald-600 leading-none">:</span>
+            <FlipUnit currentValue={currentTimeClock.seconds} previousValue={previousTimeClock.seconds} />
           </div>
         </div>
         <div className="grid flex-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
