@@ -43,12 +43,12 @@ body {
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
 
-    /* Header specific colors for light theme (based on primary) */
+    /* Header specific colors (based on primary) */
     --header-background: var(--primary);
     --header-foreground: var(--primary-foreground);
     --header-border: 231 40% 40%;     /* Darker shade of primary for border */
 
-    /* Sidebar specific colors for light theme (based on primary) */
+    /* Sidebar specific colors (based on primary) */
     --sidebar-background: var(--primary);
     --sidebar-foreground: var(--primary-foreground);
     --sidebar-primary: 231 55% 40%;  /* Darker shade of primary for active item background */
@@ -63,20 +63,20 @@ body {
     --background: 0 0% 10%; /* #1A1A1A */
     --foreground: 0 0% 98%;
 
-    --card: 0 0% 96.1%; /* Light gray #F5F5F5 for cards in dark mode */
-    --card-foreground: 240 10% 3.9%; /* Dark text for light cards in dark mode */
+    --card: 240 4% 12%; /* Dark gray, slightly lighter than background #1E1E24 */
+    --card-foreground: 0 0% 98%; /* Light text for dark cards */
     
-    --popover: 0 0% 10%; /* #1A1A1A - Keeping popovers dark */
+    --popover: 240 4% 12%; /* Consistent with card background */
     --popover-foreground: 0 0% 98%; /* Light text for dark popovers */
 
     --primary: 231 48% 55%; /* Adjusted Indigo for dark mode */
     --primary-foreground: 0 0% 98%;
 
-    --secondary: 240 4% 12%;
+    --secondary: 240 4% 12%; /* Consistent with card background */
     --secondary-foreground: 0 0% 98%;
 
-    --muted: 240 4% 12%;
-    --muted-foreground: 240 5% 64%;
+    --muted: 240 4% 12%; /* Consistent with card background */
+    --muted-foreground: 240 5% 64%; /* Muted text, slightly less bright */
 
     --accent: 174 100% 35%; /* Adjusted Teal for dark mode */
     --accent-foreground: 0 0% 98%;
@@ -84,8 +84,8 @@ body {
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 240 4% 12%;
-    --input: 240 4% 12%;
+    --border: 240 3.7% 15.9%; /* Standard dark theme border #27272A */
+    --input: 240 3.7% 15.9%;  /* Standard dark theme input bg #27272A */
     --ring: 231 48% 55%; /* Adjusted primary for dark mode rings */
 
     --chart-1: 231 48% 55%;
@@ -117,3 +117,4 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
