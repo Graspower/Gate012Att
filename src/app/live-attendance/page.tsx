@@ -86,7 +86,6 @@ export default function LiveAttendancePage() {
 
 
   useEffect(() => {
-    // Set initial clock state immediately on mount, ONCE.
     const now = new Date();
     const initialHours = now.getHours().toString().padStart(2, '0');
     const initialMinutes = now.getMinutes().toString().padStart(2, '0');
@@ -99,17 +98,16 @@ export default function LiveAttendancePage() {
       seconds: initialSeconds,
     };
     setCurrentTimeClock(initialTimeObject);
-    setPreviousTimeClock(initialTimeObject); // Initialize previous to current to avoid initial flip
+    setPreviousTimeClock(initialTimeObject); 
     setCurrentDateDisplay(initialFormattedDate);
 
     const timerId = setInterval(() => {
-      // Use functional update for setCurrentTimeClock to get the correct previous value of currentTimeClock
       setCurrentTimeClock(prevCurrentTime => {
-        setPreviousTimeClock(prevCurrentTime); // Set previousTimeClock based on the state before this update
+        setPreviousTimeClock(prevCurrentTime); 
 
         const newNow = new Date();
         setCurrentDateDisplay(format(newNow, 'EEE, d, MMM'));
-        return { // Return the new currentTimeClock value
+        return { 
           hours: newNow.getHours().toString().padStart(2, '0'),
           minutes: newNow.getMinutes().toString().padStart(2, '0'),
           seconds: newNow.getSeconds().toString().padStart(2, '0'),
@@ -118,7 +116,7 @@ export default function LiveAttendancePage() {
     }, 1000);
 
     return () => clearInterval(timerId);
-  }, []); // Empty dependency array, so this effect runs only on mount and unmount
+  }, []); 
 
   const getCameraPermission = async () => {
     setHasCameraPermission(null); 
@@ -156,7 +154,6 @@ export default function LiveAttendancePage() {
   useEffect(() => {
     getCameraPermission();
 
-    // Format initial entries on client side
     const clientFormattedInitialEntries: LiveEntry[] = initialRawEntriesData.map(rawEntry => ({
       ...rawEntry,
       timestamp: format(new Date(rawEntry.timestamp), 'HH:mm:ss'),
@@ -192,7 +189,7 @@ export default function LiveAttendancePage() {
         stream.getTracks().forEach(track => track.stop());
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleAdmSearch = () => {
@@ -200,7 +197,6 @@ export default function LiveAttendancePage() {
       toast({ variant: 'destructive', title: 'Invalid Input', description: 'Please enter an ADM number.' });
       return;
     }
-    // Search only within the client-side liveEntries which are already formatted
     const learner = liveEntries.find(entry => entry.adm.toLowerCase() === admSearch.toLowerCase());
 
     setIsAdmInputDialogOpen(false);
@@ -221,7 +217,7 @@ export default function LiveAttendancePage() {
         <div className="flex flex-col items-center gap-2 md:flex-row md:justify-between md:items-start">
           <h1 className="text-3xl font-bold tracking-tight md:mt-1">Live Attendance Monitoring</h1>
           <div className="flex flex-col items-center md:items-end">
-            <p className="text-emerald-600 text-2xl font-semibold mb-1">{currentDateDisplay}</p>
+            <p className="text-emerald-600 text-[26px] font-semibold mb-1">{currentDateDisplay}</p>
             <div className="flex justify-center items-center gap-2 perspective">
               <FlipUnit currentValue={currentTimeClock.hours} previousValue={previousTimeClock.hours} />
               <span className="text-6xl font-mono text-emerald-600 leading-none">:</span>
@@ -288,7 +284,7 @@ export default function LiveAttendancePage() {
                         name={entry.name}
                         adm={entry.adm}
                         course={entry.course}
-                        timestamp={entry.timestamp} // Already a string
+                        timestamp={entry.timestamp} 
                         imageHint={entry.imageHint}
                       />
                     ))}
