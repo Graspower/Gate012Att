@@ -213,7 +213,16 @@ export default function LiveAttendancePage() {
   return (
     <>
       <div className="flex flex-col h-full gap-6">
-        <h1 className="text-3xl font-bold tracking-tight">Live Attendance Monitoring</h1>
+        <div className="flex flex-col items-center gap-4 md:flex-row md:justify-between md:items-center">
+          <h1 className="text-3xl font-bold tracking-tight">Live Attendance Monitoring</h1>
+          <div className="flex justify-center items-center gap-2 perspective">
+            <FlipUnit currentValue={currentTimeClock.hours} previousValue={previousTimeClock.hours} />
+            <span className="text-4xl font-mono text-muted-foreground">:</span>
+            <FlipUnit currentValue={currentTimeClock.minutes} previousValue={previousTimeClock.minutes} />
+            <span className="text-4xl font-mono text-muted-foreground">:</span>
+            <FlipUnit currentValue={currentTimeClock.seconds} previousValue={previousTimeClock.seconds} />
+          </div>
+        </div>
         <div className="grid flex-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
           <Card className="md:col-span-1 lg:col-span-1 lg:max-w-md flex flex-col">
             <CardHeader>
@@ -253,15 +262,7 @@ export default function LiveAttendancePage() {
             </CardContent>
           </Card>
           
-          <div className="md:col-span-1 lg:col-span-3 flex flex-col gap-4">
-            <div className="flex justify-center items-center gap-2 self-center perspective">
-              <FlipUnit currentValue={currentTimeClock.hours} previousValue={previousTimeClock.hours} />
-              <span className="text-4xl font-mono text-muted-foreground">:</span>
-              <FlipUnit currentValue={currentTimeClock.minutes} previousValue={previousTimeClock.minutes} />
-              <span className="text-4xl font-mono text-muted-foreground">:</span>
-              <FlipUnit currentValue={currentTimeClock.seconds} previousValue={previousTimeClock.seconds} />
-            </div>
-
+          <div className="md:col-span-1 lg:col-span-3 flex flex-col">
             <Card className="flex flex-col flex-1">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
