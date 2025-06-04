@@ -71,7 +71,7 @@ export default function LiveAttendancePage() {
   const [isResultsDialogOpen, setIsResultsDialogOpen] = useState(false);
 
   const getCameraPermission = async () => {
-    setHasCameraPermission(null); // Reset to loading state
+    setHasCameraPermission(null); 
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       console.error('MediaDevices API not supported.');
       setHasCameraPermission(false);
@@ -143,20 +143,18 @@ export default function LiveAttendancePage() {
       toast({ variant: 'destructive', title: 'Invalid Input', description: 'Please enter an ADM number.' });
       return;
     }
-    // Search in both initial (more static) and currently live entries
     const learner = [...initialEntriesData, ...liveEntries].find(entry => entry.adm.toLowerCase() === admSearch.toLowerCase());
     
-    setIsAdmInputDialogOpen(false); // Close ADM dialog first
+    setIsAdmInputDialogOpen(false); 
 
     if (learner) {
       setFoundLearner(learner);
-      setIsResultsDialogOpen(true); // Then open results dialog
+      setIsResultsDialogOpen(true); 
     } else {
       setFoundLearner(null);
-      // Use a default toast if not found, destructive might be too strong
       toast({ variant: 'default', title: 'Not Found', description: `No learner found with ADM: ${admSearch}` });
     }
-    setAdmSearch(''); // Clear search input
+    setAdmSearch(''); 
   };
 
   return (
@@ -186,7 +184,7 @@ export default function LiveAttendancePage() {
                 </Button>
               </div>
               <div className="w-full">
-                <video ref={videoRef} className="w-full aspect-video rounded-md bg-black" autoPlay muted playsInline />
+                <video ref={videoRef} className="w-full aspect-video rounded-md bg-muted" autoPlay muted playsInline />
                 {hasCameraPermission === false && (
                   <Alert variant="destructive" className="mt-4 w-full">
                     <AlertTitle>Camera Access Denied</AlertTitle>
@@ -235,7 +233,6 @@ export default function LiveAttendancePage() {
         </div>
       </div>
 
-      {/* ADM Input Dialog */}
       <Dialog open={isAdmInputDialogOpen} onOpenChange={setIsAdmInputDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
@@ -265,7 +262,6 @@ export default function LiveAttendancePage() {
         </DialogContent>
       </Dialog>
 
-      {/* Results Dialog */}
       <Dialog open={isResultsDialogOpen} onOpenChange={setIsResultsDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -292,3 +288,5 @@ export default function LiveAttendancePage() {
     </>
   );
 }
+
+    

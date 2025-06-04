@@ -60,12 +60,12 @@ body {
   }
 
   .dark {
-    --background: 240 10% 3.9%;
+    --background: 240 6% 10%; /* Dark Slate Gray #17171A */
     --foreground: 0 0% 98%;
 
-    --card: 240 10% 3.9%;
+    --card: 240 6% 10%; /* Dark Slate Gray */
     --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
+    --popover: 240 6% 10%; /* Dark Slate Gray */
     --popover-foreground: 0 0% 98%;
 
     --primary: 231 48% 55%; /* Adjusted Indigo for dark mode */
@@ -116,3 +116,5 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+    
