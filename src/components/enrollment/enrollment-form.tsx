@@ -22,6 +22,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Camera, Upload } from 'lucide-react';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
@@ -54,6 +62,53 @@ export function EnrollmentForm<T extends z.ZodType<any, any>>({
   const { toast } = useToast();
   const [photoPreview, setPhotoPreview] = React.useState<string | null>(null);
 
+  // State and refs for camera functionality
+  const videoRef = React.useRef<HTMLVideoElement>(null);
+  const canvasRef = React.useRef<HTMLCanvasElement>(null);
+  const [isCameraOpen, setIsCameraOpen] = React.useState(false);
+  const [currentField, setCurrentField] = React.useState<any>(null); // Stores react-hook-form's field object
+
+  // Effect to handle camera stream activation and cleanup
+  React.useEffect(() => {
+    if (isCameraOpen) {
+      const getStream = async () => {
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+          try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            if (videoRef.current) {
+              videoRef.current.srcObject = stream;
+            }
+          } catch (error) {
+            console.error("Error accessing camera: ", error);
+            toast({
+              title: "Camera Error",
+              description: "Could not access camera. Please check permissions.",
+              variant: "destructive",
+            });
+            setIsCameraOpen(false);
+          }
+        } else {
+          toast({
+            title: "Camera Not Supported",
+            description: "Your browser does not support camera access.",
+            variant: "destructive",
+          });
+          setIsCameraOpen(false);
+        }
+      };
+      getStream();
+    }
+    
+    return () => {
+      // Cleanup: stop all tracks of the stream
+      if (videoRef.current && videoRef.current.srcObject) {
+        const mediaStream = videoRef.current.srcObject as MediaStream;
+        mediaStream.getTracks().forEach(track => track.stop());
+        videoRef.current.srcObject = null;
+      }
+    };
+  }, [isCameraOpen, toast]);
+
   const handleFormSubmit = async (data: z.infer<T>) => {
     try {
       await onSubmit(data);
@@ -84,6 +139,36 @@ export function EnrollmentForm<T extends z.ZodType<any, any>>({
     } else {
       fieldChange(null);
       setPhotoPreview(null);
+    }
+  };
+
+  const handleCapture = () => {
+    if (videoRef.current && canvasRef.current && currentField) {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const context = canvas.getContext('2d');
+      if (context) {
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const file = new File([blob], "capture.jpg", { type: 'image/jpeg' });
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            const fileList = dataTransfer.files;
+
+            currentField.onChange(fileList);
+            
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              setPhotoPreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+          }
+        }, 'image/jpeg');
+      }
+      setIsCameraOpen(false);
     }
   };
 
@@ -141,18 +226,12 @@ export function EnrollmentForm<T extends z.ZodType<any, any>>({
               <Camera className="h-16 w-16 text-muted-foreground" />
             )}
           </div>
-          <Input
-            id={String(config.name)}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={(e) => handleFileChange(e, field.onChange)}
-            ref={field.ref}
-          />
-          <Button type="button" variant="outline" onClick={() => document.getElementById(String(config.name))?.click()}>
+          <Button type="button" variant="outline" onClick={() => {
+            setCurrentField(field);
+            setIsCameraOpen(true);
+          }}>
             <Camera className="mr-2 h-4 w-4" /> Capture via Camera
           </Button>
-          <p className="text-xs text-muted-foreground">Click to simulate camera capture (uses file upload)</p>
         </div>
       );
     }
@@ -161,30 +240,52 @@ export function EnrollmentForm<T extends z.ZodType<any, any>>({
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          {fieldsConfig.map((config) => (
-            <FormField
-              key={String(config.name)}
-              control={form.control}
-              name={config.name as any}
-              render={({ field }) => (
-                <FormItem className={config.type === 'camera' ? 'md:col-span-2' : ''}>
-                  <FormLabel>{config.label}</FormLabel>
-                  <FormControl>
-                    {renderFormControl(config, field)}
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          ))}
-        </div>
-        <Button type="submit" className="w-full md:w-auto">
-          Register {categoryName}
-        </Button>
-      </form>
-    </Form>
+    <>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            {fieldsConfig.map((config) => (
+              <FormField
+                key={String(config.name)}
+                control={form.control}
+                name={config.name as any}
+                render={({ field }) => (
+                  <FormItem className={config.type === 'camera' ? 'md:col-span-2' : ''}>
+                    <FormLabel>{config.label}</FormLabel>
+                    <FormControl>
+                      {renderFormControl(config, field)}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            ))}
+          </div>
+          <Button type="submit" className="w-full md:w-auto">
+            Register {categoryName}
+          </Button>
+        </form>
+      </Form>
+      
+      <canvas ref={canvasRef} className="hidden" />
+
+      <Dialog open={isCameraOpen} onOpenChange={setIsCameraOpen}>
+        <DialogContent className="sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Camera Capture</DialogTitle>
+            <DialogDescription>
+              Position your face in the frame and click "Capture Photo".
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col items-center gap-4">
+            <video ref={videoRef} className="w-full aspect-video rounded-md bg-muted" autoPlay muted playsInline />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsCameraOpen(false)}>Cancel</Button>
+            <Button onClick={handleCapture}><Camera className="mr-2 h-4 w-4" /> Capture Photo</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
