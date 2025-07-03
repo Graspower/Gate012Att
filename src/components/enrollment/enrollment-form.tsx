@@ -226,12 +226,27 @@ export function EnrollmentForm<T extends z.ZodType<any, any>>({
               <Camera className="h-16 w-16 text-muted-foreground" />
             )}
           </div>
-          <Button type="button" variant="outline" onClick={() => {
-            setCurrentField(field);
-            setIsCameraOpen(true);
-          }}>
-            <Camera className="mr-2 h-4 w-4" /> Capture via Camera
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button type="button" variant="outline" onClick={() => {
+              setCurrentField(field);
+              setIsCameraOpen(true);
+            }}>
+              <Camera className="mr-2 h-4 w-4" /> Capture via Camera
+            </Button>
+            <Button type="button" variant="outline" asChild>
+              <label htmlFor={`${String(config.name)}-file`} className="cursor-pointer flex items-center gap-2">
+                <Upload className="mr-2 h-4 w-4" /> Browse Image
+              </label>
+            </Button>
+            <Input
+              id={`${String(config.name)}-file`}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => handleFileChange(e, field.onChange)}
+              ref={field.ref}
+            />
+          </div>
         </div>
       );
     }
